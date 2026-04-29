@@ -11,6 +11,7 @@ import StudentSearch from '@/components/StudentSearch';
 import FileUpload from '@/components/FileUpload';
 import StudentAvatar from '@/components/StudentAvatar';
 import ProfilePhotoWidget from '@/components/ProfilePhotoWidget';
+import { SkeletonOverview } from '@/components/SkeletonCard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStore } from '@/store/useStore';
 import {
@@ -26,6 +27,7 @@ import { Users, TrendingUp, AlertTriangle, BarChart3, LayoutDashboard, Clipboard
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { filterTabs, canViewTab } from '@/lib/rbac-utils';
 
+
 type TeacherTab = 'overview' | 'console' | 'compare' | 'forms' | 'search' | 'bus' | 'upload';
 
 interface TeacherOverviewTabProps {
@@ -38,6 +40,10 @@ interface TeacherOverviewTabProps {
   studentSearch: string;
   setStudentSearch: (value: string) => void;
   onSelectStudent: (student: Student) => void;
+  /** True while students are still being fetched from Supabase */
+  loadingStudents: boolean;
+  /** True while marks are still being fetched from Supabase */
+  loadingMarks: boolean;
 }
 
 const TeacherOverviewTab = ({
@@ -50,7 +56,10 @@ const TeacherOverviewTab = ({
   studentSearch,
   setStudentSearch,
   onSelectStudent,
+  loadingStudents,
+  loadingMarks,
 }: TeacherOverviewTabProps) => {
+  // ─── ALL hooks must run before any conditional return (Rules of Hooks) ─────
   const avgPerf = useMemo(
     () => (classStudents.length > 0
       ? Math.round(classStudents.reduce((sum, student) => sum + getOverallPercentage(student.id, marks), 0) / classStudents.length)
@@ -88,18 +97,30 @@ const TeacherOverviewTab = ({
     [filteredClassStudents, marks],
   );
 
+  // Show a full skeleton while the first batch of students hasn't arrived yet.
+  // All hooks above have already been called — safe to return early here.
+  if (loadingStudents && classStudents.length === 0) {
+    return <SkeletonOverview />;
+  }
+
   return (
     <>
+      {/* Stat cards — show skeleton only if no students at all yet */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard label="Class Size" value={classStudents.length} icon={Users} />
-        <StatCard label="Class Average" value={`${avgPerf}%`} icon={TrendingUp} variant="success" />
-        <StatCard label="Weak Students" value={weakStudents.length} icon={AlertTriangle} variant={weakStudents.length > 0 ? 'warning' : 'success'} />
-        <StatCard label="Low Attendance" value={lowAttendance.length} icon={BarChart3} variant={lowAttendance.length > 0 ? 'destructive' : 'success'} />
+        <StatCard label="Class Average" value={loadingMarks ? '…' : `${avgPerf}%`} icon={TrendingUp} variant="success" />
+        <StatCard label="Weak Students" value={loadingMarks ? '…' : weakStudents.length} icon={AlertTriangle} variant={weakStudents.length > 0 ? 'warning' : 'success'} />
+        <StatCard label="Low Attendance" value={loadingMarks ? '…' : lowAttendance.length} icon={BarChart3} variant={lowAttendance.length > 0 ? 'destructive' : 'success'} />
       </div>
 
       <div className="bg-card rounded-xl border border-border p-5 mb-6">
         <h3 className="font-display font-semibold text-foreground mb-4">Subject-wise Class Average</h3>
-        {subjectData.length > 0 ? (
+        {loadingMarks ? (
+          <div className="h-[250px] flex items-center justify-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">Loading marks data…</p>
+          </div>
+        ) : subjectData.length > 0 ? (
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={subjectData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -280,6 +301,7 @@ const TeacherDashboard = () => {
     setGlobalFilterSearch: setStudentSearch,
     classes,
     subjects: allSubjects,
+    dataReady,
   } = useStore();
 
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -347,12 +369,15 @@ const TeacherDashboard = () => {
 
   const dashboardTitle = teacherClass ? `${formatClassName(teacherClassName || teacherClass)} Dashboard` : 'Teacher Dashboard';
 
-  if (loading.students || loading.marks || loading.subjects) {
+  // ─── Show a minimal shell while Phase 1 config hasn't landed yet ────────────
+  // This replaces the old full-screen blocking spinner. Config data (classes,
+  // subjects, exams) is tiny and arrives in < 1s on most connections.
+  if (!dataReady) {
     return (
       <AppLayout title={dashboardTitle}>
-        <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
-          <Loader2 className="w-10 h-10 text-primary animate-spin" />
-          <p className="text-muted-foreground font-medium">Synchronizing class data...</p>
+        <div className="flex flex-col items-center justify-center min-h-[300px] gap-3">
+          <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <p className="text-sm text-muted-foreground font-medium">Setting up your dashboard…</p>
         </div>
       </AppLayout>
     );
@@ -410,6 +435,8 @@ const TeacherDashboard = () => {
           studentSearch={studentSearch}
           setStudentSearch={setStudentSearch}
           onSelectStudent={setSelectedStudent}
+          loadingStudents={loading.students}
+          loadingMarks={loading.marks}
         />
       )}
       {activeTab === 'console' && <ClassConsole />}

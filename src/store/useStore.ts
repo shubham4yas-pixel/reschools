@@ -24,6 +24,8 @@ interface AppState {
     users: AppUser[];
     userRole: 'admin' | 'teacher' | 'accountant';
     initialized: boolean;
+    /** True once Phase 1 (config) is done — dashboards use this to show skeletons vs. real data */
+    dataReady: boolean;
     currentUser: AppUser | null;
     currentSchoolId: string;
     loading: {
@@ -94,6 +96,12 @@ interface AppState {
     deleteSubjectConfig: (schoolId: string, subjectId: string) => Promise<void>;
     deleteClassConfig: (schoolId: string, classId: string) => Promise<void>;
     fetchUsersFromSupabase: (schoolId: string) => Promise<void>;
+    /**
+     * Fetches only the columns needed for the dashboard overview for a specific class.
+     * Skips pagination — capped at 200 students per class (well within school scale).
+     * Used by TeacherDashboard for instant class list render.
+     */
+    fetchStudentsLite: (schoolId: string, classId?: string) => Promise<void>;
     init: (schoolId: string) => Promise<void>;
 }
 
@@ -229,22 +237,25 @@ export const useStore = create<AppState>((set, get) => ({
     userRole: 'admin',
     currentUser: null,
     currentSchoolId: 'school_001',
+    // All flags start false — components render immediately with skeleton UIs.
+    // Individual fetch functions set their own flag to true while in-flight.
     loading: {
-        students: true,
-        marks: true,
-        attendance: true,
-        fees: true,
-        busRoutes: true,
-        credentials: true,
-        feeConfigs: true,
-        exams: true,
-        subjects: true,
-        classes: true,
+        students: false,
+        marks: false,
+        attendance: false,
+        fees: false,
+        busRoutes: false,
+        credentials: false,
+        feeConfigs: false,
+        exams: false,
+        subjects: false,
+        classes: false,
         users: false,
         auth: true,
     },
 
     initialized: false,
+    dataReady: false,
 
     globalFilterClass: '',
     globalFilterSection: '',
@@ -1411,6 +1422,91 @@ export const useStore = create<AppState>((set, get) => ({
       }
     },
 
+    // ─── Lightweight student fetch (used for fast initial render) ─────────────
+    fetchStudentsLite: async (schoolId: string, classId?: string) => {
+      try {
+        set((state: AppState) => ({ loading: { ...state.loading, students: true } }));
+
+        // Select only the columns needed to render the class list + stat cards.
+        // Avoids shipping large text columns (address, notes, etc.) on first load.
+        let query = supabase
+          .from('students')
+          .select(
+            'roll_number, name, class, class_id, section, paid_amount, total_fees, photo_url, transport_enabled, uses_bus, bus_route_id, bus_stop, avatar_color, school_id'
+          )
+          .eq('school_id', schoolId)
+          .limit(200);
+
+        if (classId) {
+          // Try to match both the UUID and the human-readable class name stored in the DB
+          query = query.or(`class_id.eq.${classId},class.eq.${classId}`);
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        const { classes, feeSettings } = get();
+        const classNameToId = new Map<string, string>();
+        classes.forEach(c => {
+          classNameToId.set(c.name.trim().toLowerCase(), c.classId);
+          classNameToId.set(c.classId.trim().toLowerCase(), c.classId);
+        });
+
+        const resolveClassId = (s: any): string => {
+          const rawClass = (s.class_id || s.class || '').trim();
+          return classNameToId.get(rawClass.toLowerCase()) || rawClass;
+        };
+
+        const formatted = (data || []).map((s: any) => ({
+          id: s.roll_number,
+          name: s.name || '',
+          classId: resolveClassId(s),
+          class: s.class || '',
+          section: s.section || '',
+          rollNumber: s.roll_number || '',
+          paidAmount: Number(s.paid_amount || 0),
+          totalFees: Number(s.total_fees || 0),
+          photoURL: s.photo_url || '',
+          profileImage: s.photo_url || '',
+          transport_enabled: s.transport_enabled || s.uses_bus || false,
+          className: s.class || '',
+          schoolId: s.school_id || schoolId,
+          parentName: '',
+          parentContact: '',
+          motherName: '',
+          address: '',
+          dateOfBirth: '',
+          bloodGroup: '',
+          bus: {
+            opted: s.transport_enabled || s.uses_bus || false,
+            enabled: s.transport_enabled || s.uses_bus || false,
+            routeId: s.bus_route_id || null,
+            stopName: s.bus_stop || null,
+            route_id: s.bus_route_id || null,
+            stop: s.bus_stop || null,
+          },
+          enrollmentDate: new Date().toISOString(),
+          avatarColor: s.avatar_color || '#3B82F6',
+        })) as unknown as Student[];
+
+        set((state: AppState) => {
+          const augmented = augmentStudents(formatted, state.classes, feeSettings);
+          // Merge with existing students — replace if same roll_number exists
+          const existingIds = new Set(augmented.map(s => s.id));
+          const kept = state.rawStudents.filter(s => !existingIds.has(s.id));
+          const mergedRaw = [...kept, ...formatted];
+          return {
+            rawStudents: mergedRaw,
+            students: augmentStudents(mergedRaw, state.classes, state.feeSettings),
+            loading: { ...state.loading, students: false },
+          };
+        });
+      } catch (err) {
+        console.error('[fetchStudentsLite] failed:', err);
+        set((state: AppState) => ({ loading: { ...state.loading, students: false } }));
+      }
+    },
+
     fetchStudents: async (schoolId: string) => {
       try {
         set((state: AppState) => ({ loading: { ...state.loading, students: true } }));
@@ -1576,61 +1672,68 @@ export const useStore = create<AppState>((set, get) => ({
     }),
 
     init: async (schoolId: string) => {
-      const start = Date.now();
-      console.log(`🚀 [INIT] Starting sequential initialization for school: ${schoolId}`);
-      
+      // ─── Guard: skip if already initialized for the same school ─────────────
+      if (get().initialized && get().currentSchoolId === schoolId) {
+        console.log('[INIT] Already initialized — skipping.');
+        return;
+      }
+
+      console.log(`🚀 [INIT] Phase 1 starting for school: ${schoolId}`);
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // PHASE 1 — Lightweight config data (classes, subjects, exams, fee configs)
+      // These are tiny tables (< 50 rows each). Fetch them in parallel.
+      // After this phase, dataReady = true → UI renders with skeleton rows.
+      // ═══════════════════════════════════════════════════════════════════════
       try {
-        // Step 1: Essential configuration (Classes, Subjects, Exams, Fee Configs) + Users
         await Promise.allSettled([
           get().fetchClassesFromSupabase(schoolId),
           get().fetchSubjectsFromSupabase(schoolId),
           get().fetchExamsFromSupabase(schoolId),
           get().fetchFeeConfigs(schoolId),
-          get().fetchBusRoutes(schoolId),
-          get().fetchUsersFromSupabase(schoolId),
         ]);
 
-        // Step 2: Students (Depends on Classes for reliable augmentation)
-        console.log("⏳ [INIT] Step 2: Fetching Students...");
-        await get().fetchStudents(schoolId);
-        console.log(`✅ [INIT] Students loaded: ${get().students.length}`);
-
-        // Step 3: Results, Financials, Attendance & Feedbacks
-        await Promise.allSettled([
-          get().fetchPaymentsFromSupabase(schoolId),
-          get().fetchMarksFromSupabase(schoolId),
-          get().fetchAttendanceFromSupabase(schoolId),
-          get().fetchFeedbacksFromSupabase(schoolId),
-        ]);
-
-        const duration = Date.now() - start;
-        
-        set({ initialized: true });
-
-        // Force all critical loading flags to false to ensure dashboard displays
-        set((state) => ({
-          loading: {
-            ...state.loading,
-            students: false,
-            marks: false,
-            classes: false,
-            fees: false,
-            subjects: false,
-            exams: false
-          }
-        }));
+        // Signal that config is ready — dashboards can now render shells
+        set({ dataReady: true });
+        console.log('✅ [INIT] Phase 1 complete — UI unblocked');
       } catch (err) {
-        console.error("❌ [INIT] Critical initialization error:", err);
-        // Ensure UI doesn't hang even on failure
-        set((state) => ({
-          loading: {
-            ...state.loading,
-            students: false,
-            marks: false,
-            classes: false,
-            fees: false
-          }
-        }));
+        console.error('❌ [INIT] Phase 1 error:', err);
+        // Still unblock the UI even on config failure
+        set({ dataReady: true });
       }
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // PHASE 2 — Students (depends on classes for classId resolution)
+      // Runs immediately after Phase 1 so the class list and stat cards populate.
+      // ═══════════════════════════════════════════════════════════════════════
+      try {
+        console.log('⏳ [INIT] Phase 2 — fetching students...');
+        await get().fetchStudents(schoolId);
+        console.log(`✅ [INIT] Phase 2 complete — ${get().students.length} students loaded`);
+      } catch (err) {
+        console.error('❌ [INIT] Phase 2 error (students):', err);
+      }
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // PHASE 3 — Heavy / secondary data (marks, attendance, payments, etc.)
+      // Fired WITHOUT await so the UI is never blocked waiting for these.
+      // Each fetch sets its own loading flag independently.
+      // ═══════════════════════════════════════════════════════════════════════
+      console.log('⏳ [INIT] Phase 3 — background fetch of heavy data...');
+      Promise.allSettled([
+        get().fetchMarksFromSupabase(schoolId),
+        get().fetchAttendanceFromSupabase(schoolId),
+        get().fetchPaymentsFromSupabase(schoolId),
+        get().fetchFeedbacksFromSupabase(schoolId),
+        get().fetchBusRoutes(schoolId),
+        get().fetchUsersFromSupabase(schoolId),
+      ]).then(() => {
+        set({ initialized: true });
+        console.log('✅ [INIT] Phase 3 complete — all data ready');
+      }).catch(err => {
+        // Non-fatal — Phase 3 failures only affect secondary data
+        console.error('❌ [INIT] Phase 3 partial error:', err);
+        set({ initialized: true });
+      });
     },
 }));

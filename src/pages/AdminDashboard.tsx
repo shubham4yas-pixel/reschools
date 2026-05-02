@@ -45,7 +45,8 @@ const AdminDashboard = () => {
     globalFilterSearch: search, setGlobalFilterSearch: setSearch,
     globalFilterClass: compareClass, setGlobalFilterClass: setCompareClass,
     globalFilterSection: compareSection, setGlobalFilterSection: setCompareSection,
-    classes: storeClasses
+    classes: storeClasses,
+    schoolName, schoolNameLoading
   } = useStore();
   const { role: userRole, setRole: setUserRole, schoolId } = useAuth();
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -282,7 +283,10 @@ const AdminDashboard = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 mt-2">
         <div>
           <h1 className="text-4xl font-display font-bold text-foreground tracking-tighter">
-            School<span className="text-primary italic">Pulse</span> ERP
+            {schoolNameLoading
+              ? <span className="text-muted-foreground text-3xl font-semibold animate-pulse">Loading...</span>
+              : <>{(schoolName || 'School')}<span className="text-primary italic"> ERP</span></>
+            }
           </h1>
           <p className="text-muted-foreground mt-1 font-medium flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />

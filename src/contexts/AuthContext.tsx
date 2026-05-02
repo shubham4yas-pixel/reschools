@@ -100,6 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [authLoading, setAuthLoading] = useState(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const setCurrentUser = useStore(state => state.setCurrentUser);
+  const fetchSchoolName = useStore(state => state.fetchSchoolName);
 
   const resetAuthState = () => {
     console.log('[Auth] resetAuthState — clearing all auth state');
@@ -125,6 +126,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setParentStudentId(userData.role === 'parent' ? linkedStudentId : '');
     setClassId(userData.classId || null);
     setCurrentUser(userData);
+    // Fetch school name once — no-ops if already loaded for the same school
+    void fetchSchoolName(userData.schoolId || 'school_001');
   };
 
   const resolveUserProfile = async (uid: string, email?: string | null): Promise<AppUser | null> => {

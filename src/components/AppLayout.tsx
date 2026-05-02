@@ -1,10 +1,12 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useStore } from '@/store/useStore';
 import { BookOpen, LogOut } from 'lucide-react';
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 
 const AppLayout = ({ children, title }: { children: ReactNode; title: string }) => {
   const { role, signOut } = useAuth();
+  const { schoolName, schoolNameLoading } = useStore();
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -15,7 +17,9 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
               <BookOpen className="w-5 h-5 text-white" />
             </div>
             <div className="flex flex-col justify-center">
-              <span className="font-display font-bold text-lg tracking-tight leading-tight">SchoolPulse</span>
+              <span className="font-display font-bold text-lg tracking-tight leading-tight">
+                {schoolNameLoading ? 'Loading...' : (schoolName || 'School ERP')}
+              </span>
               <span className="text-xs font-medium text-primary capitalize leading-tight">{role} Dashboard</span>
             </div>
           </div>

@@ -28,6 +28,9 @@ interface AppState {
     dataReady: boolean;
     currentUser: AppUser | null;
     currentSchoolId: string;
+    /** Fetched from the `schools` table — null while loading, '' on error/not-found */
+    schoolName: string | null;
+    schoolNameLoading: boolean;
     loading: {
         students: boolean;
         marks: boolean;
@@ -102,6 +105,8 @@ interface AppState {
      * Used by TeacherDashboard for instant class list render.
      */
     fetchStudentsLite: (schoolId: string, classId?: string) => Promise<void>;
+    /** Fetch the school's display name from the `schools` table. No-ops if already loaded for the same school. */
+    fetchSchoolName: (schoolId: string) => Promise<void>;
     init: (schoolId: string) => Promise<void>;
 }
 
@@ -237,6 +242,8 @@ export const useStore = create<AppState>((set, get) => ({
     userRole: 'admin',
     currentUser: null,
     currentSchoolId: 'school_001',
+    schoolName: null,
+    schoolNameLoading: false,
     // All flags start false — components render immediately with skeleton UIs.
     // Individual fetch functions set their own flag to true while in-flight.
     loading: {
@@ -1670,6 +1677,39 @@ export const useStore = create<AppState>((set, get) => ({
         currentSchoolId: currentUser?.schoolId || 'school_001',
         loading: { ...get().loading, auth: false }
     }),
+
+    fetchSchoolName: async (schoolId: string) => {
+        // Reset and re-fetch if the schoolId has changed
+        if (get().schoolName !== null && get().currentSchoolId === schoolId) return;
+        if (get().schoolNameLoading) return;
+
+        set({ schoolNameLoading: true, schoolName: null });
+        try {
+            // The actual column in the `schools` table is "School's Name"
+            const { data, error } = await supabase
+                .from('schools')
+                .select('"School\'s Name"')
+                .eq('id', schoolId)
+                .maybeSingle();
+
+            if (error) {
+                console.error('[fetchSchoolName] Supabase error:', error.message, error.details);
+                set({ schoolName: '', schoolNameLoading: false });
+                return;
+            }
+
+            // Supabase returns the key exactly as the column name
+            const rawName = (data as any)?.[`School's Name`] || '';
+            console.log('[fetchSchoolName] fetched:', rawName, 'for school:', schoolId);
+            set({
+                schoolName: rawName,
+                schoolNameLoading: false,
+            });
+        } catch (err) {
+            console.error('[fetchSchoolName] Unexpected error:', err);
+            set({ schoolName: '', schoolNameLoading: false });
+        }
+    },
 
     init: async (schoolId: string) => {
       // ─── Guard: skip if already initialized for the same school ─────────────

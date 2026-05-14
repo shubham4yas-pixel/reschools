@@ -18,9 +18,11 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
             </div>
             <div className="flex flex-col justify-center">
               <span className="font-display font-bold text-lg tracking-tight leading-tight">
-                {schoolNameLoading ? 'Loading...' : (schoolName || 'School ERP')}
+                School<span className="italic text-primary">Pulse</span>
               </span>
-              <span className="text-xs font-medium text-primary capitalize leading-tight">{role} Dashboard</span>
+              <span className="text-xs font-medium text-muted-foreground capitalize leading-tight">
+                {role ? `${role} Dashboard` : 'Dashboard'}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-4">

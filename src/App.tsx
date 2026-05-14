@@ -10,6 +10,7 @@ import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import NotFound from "./pages/NotFound.tsx";
 import NetworkStatus from "@/components/NetworkStatus";
 import { useStore } from "@/store/useStore";
+import { useSchoolSettingsStore } from "@/store/useSchoolSettingsStore";
 import ProtectedRoute, { getRoleHomePath } from "@/components/ProtectedRoute";
 import AdminDashboard from "@/pages/AdminDashboard";
 import TeacherDashboard from "@/pages/TeacherDashboard";
@@ -46,15 +47,23 @@ const AuthGate = () => {
 
 const AppBootstrap = () => {
   const { schoolId, role, authLoading } = useAuth();
-  const init = useStore(state => state.init);
+  const init       = useStore(state => state.init);
+  const resetStore = useStore(state => state.resetStore);
 
   useEffect(() => {
-    if (authLoading || !role || !schoolId) {
+    if (authLoading) return;
+
+    if (!role || !schoolId) {
+      // User logged out — wipe all school-specific data immediately
+      // so the next login never sees stale data from the previous session
+      resetStore();
+      useSchoolSettingsStore.getState().resetSchoolSettings();
       return;
     }
-    // Initialize all data from Supabase on login
+
+    // User logged in — initialise data for their school
     void init(schoolId);
-  }, [authLoading, role, schoolId, init]);
+  }, [authLoading, role, schoolId, init, resetStore]);
 
   return null;
 };

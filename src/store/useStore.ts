@@ -108,6 +108,8 @@ interface AppState {
     fetchStudentsLite: (schoolId: string, classId?: string) => Promise<void>;
     /** Fetch the school's display name from the `schools` table. No-ops if already loaded for the same school. */
     fetchSchoolName: (schoolId: string) => Promise<void>;
+    /** Wipes all school-specific state — call on logout so the next login starts clean. */
+    resetStore: () => void;
     init: (schoolId: string) => Promise<void>;
 }
 
@@ -1731,6 +1733,51 @@ export const useStore = create<AppState>((set, get) => ({
         }
     },
 
+
+    resetStore: () => {
+      console.log('[Store] Resetting all school data on logout');
+      set({
+        rawStudents: [],
+        students: [],
+        rawMarks: [],
+        marks: [],
+        attendance: [],
+        feedbacks: [],
+        fees: [],
+        payments: [],
+        busRoutes: [],
+        feeConfigs: [],
+        feeSettings: {},
+        exams: [],
+        subjects: [],
+        classes: [],
+        loginCredentials: [],
+        users: [],
+        currentUser: null,
+        currentSchoolId: 'school_001',
+        schoolName: null,
+        schoolNameLoading: false,
+        initialized: false,
+        dataReady: false,
+        globalFilterClass: '',
+        globalFilterSection: '',
+        globalFilterSearch: '',
+        loading: {
+          students: false,
+          marks: false,
+          attendance: false,
+          fees: false,
+          busRoutes: false,
+          credentials: false,
+          feeConfigs: false,
+          exams: false,
+          subjects: false,
+          classes: false,
+          users: false,
+          auth: false,
+        },
+      });
+    },
 
     init: async (schoolId: string) => {
       // ─── Guard: skip if already initialized for the same school ─────────────

@@ -24,6 +24,7 @@ import FeedbackList from './FeedbackList';
 import useStudentFeedback from '@/hooks/useStudentFeedback';
 import StudentAvatar from './StudentAvatar';
 import { uploadProfileImage } from '@/lib/profileImageUpload';
+import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 
 
 interface StudentProfileProps {
@@ -36,6 +37,7 @@ interface StudentProfileProps {
 const StudentProfile = ({ student: initialStudent, onBack, simplified = false, onFeedbackClick }: StudentProfileProps) => {
   
   const { schoolId, role } = useAuth();
+  const { hasFeature, isModuleEnabled } = useSchoolSettings();
   const { students, marks: allMarks, attendance, feeSettings, loading, subjects: allSubjects, exams, classes: storeClasses, busRoutes, payments, fetchStudents } = useStore();
   const [savingBus, setSavingBus] = React.useState(false);
   const [uploadingPhoto, setUploadingPhoto] = React.useState(false);
@@ -71,6 +73,11 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
   const busFee = Number(feeSettings[studentClassId]?.transportFee || 0);
   const busRouteId = student?.bus?.routeId || student?.bus?.route || '';
   const stopName = student?.bus?.stopName || '';
+  const profilePictureEnabled = hasFeature('profile_picture');
+  const studentBioEnabled = hasFeature('student_bio');
+  // 'transport' key maps from modules.transport in the DB;
+  // 'transport_module' legacy flat key is kept in sync by normalizeSchoolSettings
+  const transportModuleEnabled = isModuleEnabled('transport') || isModuleEnabled('transport_module');
 
   const clearPreviewObjectUrl = React.useCallback(() => {
     if (previewObjectUrlRef.current) {
@@ -103,6 +110,11 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
     event.target.value = '';
 
     if (!file || !student || !schoolId || role !== 'admin' || uploadingPhoto) {
+      return;
+    }
+
+    if (!profilePictureEnabled) {
+      toast.error('Profile pictures are disabled for this school');
       return;
     }
 
@@ -312,7 +324,7 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
               className="w-14 h-14 rounded-xl"
               initialsClassName="text-xl font-bold text-primary-foreground"
             />
-            {role === 'admin' && !simplified && (
+            {profilePictureEnabled && role === 'admin' && !simplified && (
               <>
                 <input
                   ref={photoInputRef}
@@ -380,11 +392,37 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
         />
       </div>
 
+      {studentBioEnabled && (
+        <div className="bg-card rounded-xl border border-border p-5">
+          <h3 className="font-display font-semibold text-foreground mb-4">Student Bio</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Date of Birth</p>
+              <p className="text-sm font-medium text-foreground mt-1">
+                {student.dateOfBirth ? new Date(student.dateOfBirth).toLocaleDateString('en-IN') : 'Not added'}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Blood Group</p>
+              <p className="text-sm font-medium text-foreground mt-1">{student.bloodGroup || 'Not added'}</p>
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Parent Contact</p>
+              <p className="text-sm font-medium text-foreground mt-1">{student.parentContact || 'Not added'}</p>
+            </div>
+            <div className="col-span-2 md:col-span-1">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Address</p>
+              <p className="text-sm font-medium text-foreground mt-1">{student.address || 'Not added'}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Financial Overview */}
       <div className="bg-card rounded-xl border border-border p-5">
         <h3 className="font-display font-semibold text-foreground mb-4">Financial Overview</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard label="Monthly Fee (Total)" value={`₹${displayTotalFee}`} icon={IndianRupee} trend={student?.transport_enabled ? `Includes ₹${busFee} Bus` : ''} />
+          <StatCard label="Monthly Fee (Total)" value={`₹${displayTotalFee}`} icon={IndianRupee} trend={transportModuleEnabled && student?.transport_enabled ? `Includes ₹${busFee} Bus` : ''} />
           <StatCard label="Paid Amount" value={`₹${displayPaidAmount}`} icon={IndianRupee} variant="success" />
           <div className="relative group">
             <StatCard label="Pending Due" value={`₹${displayPending}`} icon={IndianRupee} variant={displayStatus === 'paid' ? 'success' : 'destructive'} />
@@ -426,121 +464,123 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
       </div>
 
       {/* Transport Management */}
-      <div className="bg-card rounded-xl border border-border p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Bus className="w-5 h-5 text-primary" />
-          <h3 className="font-display font-semibold text-foreground">Transport / Bus Service</h3>
-        </div>
-
-        <div className="flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div
-                onClick={() => {
-                  if (!simplified) setDraftBusEnabled(prev => !prev);
-                }}
-                className={`w-12 h-6 rounded-full transition-all flex items-center p-1 ${draftBusEnabled ? 'bg-primary' : 'bg-muted'}`}
-              >
-                <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${draftBusEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
-              </div>
-              <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Avails Bus Service</span>
-            </label>
-
-            {draftBusEnabled && (
-              <div className="flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
-                <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 ml-1">Monthly Bus Fee (₹)</label>
-                <input
-                  type="number"
-                  value={draftBusFee}
-                  onChange={(e) => setDraftBusFee(Number(e.target.value))}
-                  disabled={simplified}
-                  className="w-full max-w-[200px] px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
-                  placeholder="e.g. 1500"
-                  min={0}
-                />
-              </div>
-            )}
-
-            {!simplified && (
-              <button
-                onClick={() => handleSaveBus()}
-                disabled={savingBus}
-                className="md:ml-auto flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all disabled:opacity-50"
-              >
-                {savingBus ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                {savingBus ? 'Saving...' : 'Save Transport Settings'}
-              </button>
-            )}
+      {transportModuleEnabled && (
+        <div className="bg-card rounded-xl border border-border p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <Bus className="w-5 h-5 text-primary" />
+            <h3 className="font-display font-semibold text-foreground">Transport / Bus Service</h3>
           </div>
 
-          {draftBusEnabled && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/20 rounded-2xl border border-border/50">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-muted-foreground mb-1.5 ml-1">Select Route</label>
-                  <select
-                    value={draftRouteId}
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col md:flex-row gap-6 items-start md:items-center">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <div
+                  onClick={() => {
+                    if (!simplified) setDraftBusEnabled(prev => !prev);
+                  }}
+                  className={`w-12 h-6 rounded-full transition-all flex items-center p-1 ${draftBusEnabled ? 'bg-primary' : 'bg-muted'}`}
+                >
+                  <div className={`w-4 h-4 rounded-full bg-white transition-all transform ${draftBusEnabled ? 'translate-x-6' : 'translate-x-0'}`} />
+                </div>
+                <span className="text-sm font-medium text-foreground group-hover:text-primary transition-colors">Avails Bus Service</span>
+              </label>
+
+              {draftBusEnabled && (
+                <div className="flex-1 animate-in fade-in slide-in-from-left-2 duration-200">
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1 ml-1">Monthly Bus Fee (₹)</label>
+                  <input
+                    type="number"
+                    value={draftBusFee}
+                    onChange={(e) => setDraftBusFee(Number(e.target.value))}
                     disabled={simplified}
-                    onChange={(e) => {
-                      setDraftRouteId(e.target.value);
-                      setDraftStopName(''); // reset stop when route changes
-                    }}
-                    className="w-full px-3 py-2.5 text-sm bg-card border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value="">Choose a route...</option>
-                    {busRoutes.map(r => <option key={r.id} value={r.id}>{r.routeName} ({r.routeNumber})</option>)}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-black uppercase text-muted-foreground mb-1.5 ml-1">Select Stop</label>
-                  <select
-                    value={draftStopName}
-                    disabled={simplified || !draftRouteId}
-                    onChange={(e) => setDraftStopName(e.target.value)}
-                    className="w-full px-3 py-2.5 text-sm bg-card border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  >
-                    <option value="">Choose a stop...</option>
-                    {busRoutes.find(r => r.id === draftRouteId)?.stops.sort((a, b) => a.order - b.order).map(s => <option key={s.name} value={s.name}>{s.name} ({s.time})</option>)}
-                  </select>
-                </div>
-              </div>
-
-              {draftRouteId && draftStopName && (
-                <div className="bg-primary/5 rounded-2xl p-5 border border-primary/10">
-                  <h4 className="text-[10px] font-black uppercase text-primary mb-3 flex items-center gap-1.5">
-                    <Bus className="w-3 h-3" /> Scheduled Details
-                  </h4>
-                  {(() => {
-                    const r = busRoutes.find(x => x.id === draftRouteId);
-                    const s = r?.stops.find(x => x.name === draftStopName);
-                    return (
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center text-sm border-b border-primary/5 pb-2">
-                          <span className="text-muted-foreground">Vehicle Number</span>
-                          <span className="font-bold text-foreground">{r?.vehicleNumber || 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm border-b border-primary/5 pb-2">
-                          <span className="text-muted-foreground">Pickup Time</span>
-                          <span className="font-bold text-primary">{s?.time || 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm border-b border-primary/5 pb-2">
-                          <span className="text-muted-foreground">Driver</span>
-                          <span className="font-bold text-foreground">{r?.driverName || 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-muted-foreground">Contact</span>
-                          <span className="font-bold text-foreground">{r?.driverContact || 'N/A'}</span>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                    className="w-full max-w-[200px] px-3 py-2 text-sm bg-background border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold"
+                    placeholder="e.g. 1500"
+                    min={0}
+                  />
                 </div>
               )}
+
+              {!simplified && (
+                <button
+                  onClick={() => handleSaveBus()}
+                  disabled={savingBus}
+                  className="md:ml-auto flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-widest hover:shadow-lg hover:shadow-primary/20 transition-all disabled:opacity-50"
+                >
+                  {savingBus ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                  {savingBus ? 'Saving...' : 'Save Transport Settings'}
+                </button>
+              )}
             </div>
-          )}
+
+            {draftBusEnabled && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-muted/20 rounded-2xl border border-border/50">
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-muted-foreground mb-1.5 ml-1">Select Route</label>
+                    <select
+                      value={draftRouteId}
+                      disabled={simplified}
+                      onChange={(e) => {
+                        setDraftRouteId(e.target.value);
+                        setDraftStopName(''); // reset stop when route changes
+                      }}
+                      className="w-full px-3 py-2.5 text-sm bg-card border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Choose a route...</option>
+                      {busRoutes.map(r => <option key={r.id} value={r.id}>{r.routeName} ({r.routeNumber})</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-black uppercase text-muted-foreground mb-1.5 ml-1">Select Stop</label>
+                    <select
+                      value={draftStopName}
+                      disabled={simplified || !draftRouteId}
+                      onChange={(e) => setDraftStopName(e.target.value)}
+                      className="w-full px-3 py-2.5 text-sm bg-card border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Choose a stop...</option>
+                      {busRoutes.find(r => r.id === draftRouteId)?.stops.sort((a, b) => a.order - b.order).map(s => <option key={s.name} value={s.name}>{s.name} ({s.time})</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                {draftRouteId && draftStopName && (
+                  <div className="bg-primary/5 rounded-2xl p-5 border border-primary/10">
+                    <h4 className="text-[10px] font-black uppercase text-primary mb-3 flex items-center gap-1.5">
+                      <Bus className="w-3 h-3" /> Scheduled Details
+                    </h4>
+                    {(() => {
+                      const r = busRoutes.find(x => x.id === draftRouteId);
+                      const s = r?.stops.find(x => x.name === draftStopName);
+                      return (
+                        <div className="space-y-3">
+                          <div className="flex justify-between items-center text-sm border-b border-primary/5 pb-2">
+                            <span className="text-muted-foreground">Vehicle Number</span>
+                            <span className="font-bold text-foreground">{r?.vehicleNumber || 'N/A'}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm border-b border-primary/5 pb-2">
+                            <span className="text-muted-foreground">Pickup Time</span>
+                            <span className="font-bold text-primary">{s?.time || 'N/A'}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm border-b border-primary/5 pb-2">
+                            <span className="text-muted-foreground">Driver</span>
+                            <span className="font-bold text-foreground">{r?.driverName || 'N/A'}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">Contact</span>
+                            <span className="font-bold text-foreground">{r?.driverContact || 'N/A'}</span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* AI Summary */}
       <div className="bg-card rounded-xl border border-border p-5">
@@ -918,4 +958,3 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
 };
 
 export default StudentProfile;
-

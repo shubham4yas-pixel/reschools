@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 import { Student, Mark, AttendanceRecord, ACADEMIC_MONTHS, Payment } from '@/lib/types';
 import {
     getUniqueClasses,
@@ -94,6 +95,18 @@ const ClassConsole = ({ onStudentClick }: { onStudentClick?: (student: Student) 
 
     const [mode, setMode] = useState<ConsoleMode>('attendance');
     const [saving, setSaving] = useState(false);
+
+    // ─── Feature / Module flags ───────────────────────────────────────────────────
+    const { isModuleEnabled } = useSchoolSettings();
+    const marksEnabled   = isModuleEnabled('marks');
+    const feesEnabled    = isModuleEnabled('fees');
+    // attendance is always enabled (core module)
+
+    // If currently selected mode becomes disabled, fall back to attendance
+    useEffect(() => {
+        if (mode === 'marks' && !marksEnabled) setMode('attendance');
+        if (mode === 'fees'  && !feesEnabled)  setMode('attendance');
+    }, [mode, marksEnabled, feesEnabled]);
 
     // ─── Shared Marks Context (Synced with Data Entry) ──────────────────────────
     const MARKS_CONTEXT_KEY = 'marks_entry_context';
@@ -306,13 +319,13 @@ const ClassConsole = ({ onStudentClick }: { onStudentClick?: (student: Student) 
                         <p className="text-sm text-muted-foreground mt-0.5">Select class and edit all student data in one place</p>
                     </div>
 
-                    {/* Mode switcher */}
+                    {/* Mode switcher — only show tabs whose module is enabled */}
                     <div className="flex gap-1.5 bg-muted/40 p-1 rounded-xl">
                         {([
-                            { id: 'attendance', label: 'Attendance', icon: <Calendar className="w-3.5 h-3.5" /> },
-                            { id: 'marks', label: 'Marks', icon: <ClipboardList className="w-3.5 h-3.5" /> },
-                            { id: 'fees', label: 'Fees', icon: <IndianRupee className="w-3.5 h-3.5" /> },
-                        ] as const).map(m => (
+                            { id: 'attendance' as ConsoleMode, label: 'Attendance', icon: <Calendar className="w-3.5 h-3.5" />, enabled: true },
+                            { id: 'marks'      as ConsoleMode, label: 'Marks',      icon: <ClipboardList className="w-3.5 h-3.5" />, enabled: marksEnabled },
+                            { id: 'fees'       as ConsoleMode, label: 'Fees',       icon: <IndianRupee className="w-3.5 h-3.5" />, enabled: feesEnabled },
+                        ]).filter(m => m.enabled).map(m => (
                             <button
                                 key={m.id}
                                 onClick={() => setMode(m.id)}

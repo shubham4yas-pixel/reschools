@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Feedback } from '@/lib/types';
+import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 
 interface FeedbackListProps {
   feedback: Feedback[];
@@ -18,10 +19,12 @@ const FeedbackList = ({
   limit,
   emptyMessage = 'No feedback yet.',
 }: FeedbackListProps) => {
+  const { hasFeature } = useSchoolSettings();
   const items = useMemo(() => {
     const sorted = [...feedback].sort((left, right) => getFeedbackTime(right) - getFeedbackTime(left));
     return typeof limit === 'number' ? sorted.slice(0, limit) : sorted;
   }, [feedback, limit]);
+  const showTeacherContact = hasFeature('show_teacher_contact');
 
   if (items.length === 0) {
     return <p className="text-sm text-muted-foreground text-center py-4">{emptyMessage}</p>;
@@ -33,7 +36,9 @@ const FeedbackList = ({
         <div key={entry.id} className="bg-muted/30 rounded-lg p-4">
           <div className="flex justify-between items-start gap-3 mb-1">
             <div className="min-w-0">
-              <span className="text-sm font-medium text-foreground">{entry.teacherName || 'Teacher'}</span>
+              <span className="text-sm font-medium text-foreground">
+                {showTeacherContact ? (entry.teacherName || 'Teacher') : 'Teacher'}
+              </span>
               {entry.examType && (
                 <p className="text-[11px] text-muted-foreground mt-0.5">{entry.examType}</p>
               )}

@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { useSchoolSettingsStore } from "@/store/useSchoolSettingsStore";
 
 const mapUploadError = (error: unknown) => {
   if (error instanceof Error && error.message) {
@@ -54,6 +55,10 @@ export async function uploadProfileImage(
     throw new Error("Please select an image file");
   }
 
+  if (!useSchoolSettingsStore.getState().hasFeature('profile_picture')) {
+    throw new Error("Profile pictures are disabled for this school");
+  }
+
   try {
     onProgress?.(10);
     const imageDataUrl = await readFileAsDataUrl(file, onProgress);
@@ -90,6 +95,9 @@ export async function uploadUserProfileImage(
   if (!file || file.size === 0) throw new Error("Invalid file");
   if (!uid) throw new Error("Missing user id");
   if (!file.type.startsWith("image/")) throw new Error("Please select an image file");
+  if (!useSchoolSettingsStore.getState().hasFeature('profile_picture')) {
+    throw new Error("Profile pictures are disabled for this school");
+  }
 
   try {
     onProgress?.(10);

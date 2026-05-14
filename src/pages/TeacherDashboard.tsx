@@ -26,6 +26,7 @@ import { AttendanceRecord, Mark, Student } from '@/lib/types';
 import { Users, TrendingUp, AlertTriangle, BarChart3, LayoutDashboard, ClipboardList, Bus, Search, Upload, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { filterTabs, canViewTab } from '@/lib/rbac-utils';
+import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 
 
 type TeacherTab = 'overview' | 'console' | 'compare' | 'forms' | 'search' | 'bus' | 'upload';
@@ -353,19 +354,25 @@ const TeacherDashboard = () => {
     }
   }, [selectedStudent, classStudents]);
 
+  const { isModuleEnabled, hasFeature } = useSchoolSettings();
+  const transportEnabled    = isModuleEnabled('transport');
+  const analyticsEnabled    = isModuleEnabled('analytics');
+  const studentSearchEnabled = hasFeature('student_search');
+  const bulkUploadEnabled   = hasFeature('bulk_upload');
+
   const teacherTabs: { id: TeacherTab; label: string; icon: React.ReactNode }[] = useMemo(() => {
     const tabs: { id: TeacherTab; label: string; icon: React.ReactNode }[] = [
-      { id: 'overview', label: 'Class Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
-      { id: 'console', label: 'Class Console', icon: <Users className="w-4 h-4" /> },
-      { id: 'forms', label: 'Data Entry', icon: <ClipboardList className="w-4 h-4" /> },
-      { id: 'upload', label: 'Upload Sheets', icon: <Upload className="w-4 h-4" /> },
-      { id: 'search', label: 'Student Search', icon: <Search className="w-4 h-4" /> },
-      { id: 'compare', label: 'Compare & Analyse', icon: <BarChart3 className="w-4 h-4" /> },
-      { id: 'bus', label: 'Bus Info', icon: <Bus className="w-4 h-4" /> },
+      { id: 'overview', label: 'Class Overview',    icon: <LayoutDashboard className="w-4 h-4" /> },
+      { id: 'console',  label: 'Class Console',     icon: <Users className="w-4 h-4" /> },
+      { id: 'forms',    label: 'Data Entry',        icon: <ClipboardList className="w-4 h-4" /> },
+      ...(bulkUploadEnabled    ? [{ id: 'upload'  as TeacherTab, label: 'Upload Sheets',     icon: <Upload className="w-4 h-4" /> }] : []),
+      ...(studentSearchEnabled ? [{ id: 'search'  as TeacherTab, label: 'Student Search',    icon: <Search className="w-4 h-4" /> }] : []),
+      ...(analyticsEnabled     ? [{ id: 'compare' as TeacherTab, label: 'Compare & Analyse', icon: <BarChart3 className="w-4 h-4" /> }] : []),
+      ...(transportEnabled     ? [{ id: 'bus'     as TeacherTab, label: 'Bus Info',          icon: <Bus className="w-4 h-4" /> }] : []),
     ];
 
     return filterTabs(userRole || 'teacher', tabs);
-  }, [userRole]);
+  }, [userRole, transportEnabled, analyticsEnabled, studentSearchEnabled, bulkUploadEnabled]);
 
   const dashboardTitle = teacherClass ? `${formatClassName(teacherClassName || teacherClass)} Dashboard` : 'Teacher Dashboard';
 

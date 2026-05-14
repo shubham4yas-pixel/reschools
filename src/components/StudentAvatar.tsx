@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Student } from '@/lib/types';
+import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 
 interface StudentAvatarProps {
   student: Pick<Student, 'name' | 'avatarColor' | 'photoURL'>;
@@ -20,13 +21,15 @@ const StudentAvatar = ({
   className = '',
   initialsClassName = '',
 }: StudentAvatarProps) => {
+  const { hasFeature } = useSchoolSettings();
   const [imageFailed, setImageFailed] = useState(false);
+  const profilePicturesEnabled = hasFeature('profile_picture');
 
   useEffect(() => {
     setImageFailed(false);
   }, [student.photoURL]);
 
-  const showImage = Boolean(student.photoURL) && !imageFailed;
+  const showImage = profilePicturesEnabled && Boolean(student.photoURL) && !imageFailed;
 
   return (
     <div

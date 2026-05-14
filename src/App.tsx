@@ -5,6 +5,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { SchoolSettingsProvider } from "@/contexts/SchoolSettingsContext";
 import GlobalErrorBoundary from "@/components/GlobalErrorBoundary";
 import NotFound from "./pages/NotFound.tsx";
 import NetworkStatus from "@/components/NetworkStatus";
@@ -64,25 +65,27 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <AuthProvider>
-            <NetworkStatus />
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppBootstrap />
-              <Routes>
-                <Route path="/" element={<AuthGate />} />
-                <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
-                <Route path="/accountant" element={<ProtectedRoute role="accountant"><AdminDashboard /></ProtectedRoute>} />
-                <Route path="/teacher" element={<ProtectedRoute role="teacher"><TeacherDashboard /></ProtectedRoute>} />
-                <Route path="/student" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
-                <Route path="/parent" element={<ProtectedRoute role="parent"><ParentDashboard /></ProtectedRoute>} />
-                <Route path="/students" element={<Navigate to="/student" replace />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/terms-of-service" element={<TermsOfService />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
+            <SchoolSettingsProvider>
+              <NetworkStatus />
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppBootstrap />
+                <Routes>
+                  <Route path="/" element={<AuthGate />} />
+                  <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="/accountant" element={<ProtectedRoute role="accountant"><AdminDashboard /></ProtectedRoute>} />
+                  <Route path="/teacher" element={<ProtectedRoute role="teacher"><TeacherDashboard /></ProtectedRoute>} />
+                  <Route path="/student" element={<ProtectedRoute role="student"><StudentDashboard /></ProtectedRoute>} />
+                  <Route path="/parent" element={<ProtectedRoute role="parent"><ParentDashboard /></ProtectedRoute>} />
+                  <Route path="/students" element={<Navigate to="/student" replace />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/terms-of-service" element={<TermsOfService />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </SchoolSettingsProvider>
           </AuthProvider>
         </TooltipProvider>
       </QueryClientProvider>

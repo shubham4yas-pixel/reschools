@@ -4,13 +4,26 @@ import { useAuth } from '@/contexts/AuthContext';
 import { BusRoute } from '@/lib/types';
 import { Bus, MapPin, User, Phone, Plus, Edit2, Check, X, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 
 const BusManagement = ({ studentId }: { studentId?: string }) => {
   const { schoolId, role } = useAuth();
+  const { isModuleEnabled } = useSchoolSettings();
   const { busRoutes, students, addBusRoute, updateBusRoute, loading } = useStore();
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const isAdmin = role === 'admin';
+  // 'transport' maps from modules.transport; 'transport_module' is the legacy flat key
+  const transportEnabled = isModuleEnabled('transport') || isModuleEnabled('transport_module');
+
+  if (!transportEnabled) {
+    return (
+      <div className="bg-card rounded-xl border border-border p-8 text-center">
+        <Bus className="w-10 h-10 text-muted-foreground mx-auto mb-2" />
+        <p className="text-muted-foreground">Transport module is disabled for this school.</p>
+      </div>
+    );
+  }
 
   if (loading.busRoutes) {
     return (

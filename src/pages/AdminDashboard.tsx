@@ -18,6 +18,7 @@ import ProfileErrorBoundary from '@/components/ProfileErrorBoundary';
 import StudentAvatar from '@/components/StudentAvatar';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStore } from '@/store/useStore';
+import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 import {
   getOverallPercentage,
   getAttendancePercentage,
@@ -49,6 +50,15 @@ const AdminDashboard = () => {
     schoolName, schoolNameLoading
   } = useStore();
   const { role: userRole, setRole: setUserRole, schoolId } = useAuth();
+  const { hasFeature, isModuleEnabled } = useSchoolSettings();
+
+  // ── Feature / Module flags (all default true if settings not loaded yet) ──
+  const feesEnabled       = isModuleEnabled('fees');
+  const transportEnabled  = isModuleEnabled('transport');
+  const analyticsEnabled  = isModuleEnabled('analytics');
+  const studentSearchEnabled = hasFeature('student_search');
+  const bulkUploadEnabled    = hasFeature('bulk_upload');
+  const profilePictureEnabled = hasFeature('profile_picture');
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
   const [quickFilter, setQuickFilter] = useState<QuickFilter>('all');
@@ -233,21 +243,21 @@ const AdminDashboard = () => {
   }, [students, marks, attendance, compareClass, compareSection, compareMetric, financialStats]);
 
   const adminTabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = useMemo(() => {
-    const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
+    const allTabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
       { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
       { id: 'console', label: 'Class Console', icon: <Users className="w-4 h-4" /> },
       { id: 'forms', label: 'Data Entry', icon: <ClipboardList className="w-4 h-4" /> },
-      { id: 'upload', label: 'Upload Sheets', icon: <Upload className="w-4 h-4" /> },
-      { id: 'search', label: 'Student Search', icon: <Search className="w-4 h-4" /> },
-      { id: 'compare', label: 'Compare & Analyse', icon: <BarChart3 className="w-4 h-4" /> },
-      { id: 'bus', label: 'Bus Transport', icon: <Bus className="w-4 h-4" /> },
+      ...(bulkUploadEnabled ? [{ id: 'upload' as AdminTab, label: 'Upload Sheets', icon: <Upload className="w-4 h-4" /> }] : []),
+      ...(studentSearchEnabled ? [{ id: 'search' as AdminTab, label: 'Student Search', icon: <Search className="w-4 h-4" /> }] : []),
+      ...(analyticsEnabled ? [{ id: 'compare' as AdminTab, label: 'Compare & Analyse', icon: <BarChart3 className="w-4 h-4" /> }] : []),
+      ...(transportEnabled ? [{ id: 'bus' as AdminTab, label: 'Bus Transport', icon: <Bus className="w-4 h-4" /> }] : []),
       { id: 'academic_settings', label: 'Academic Settings', icon: <BookOpen className="w-4 h-4" /> },
-      { id: 'settings', label: 'Fee Settings', icon: <Settings className="w-4 h-4" /> },
+      ...(feesEnabled ? [{ id: 'settings' as AdminTab, label: 'Fee Settings', icon: <Settings className="w-4 h-4" /> }] : []),
       { id: 'credentials', label: 'Credentials', icon: <Key className="w-4 h-4" /> },
     ];
 
-    return filterTabs(userRole || 'admin', tabs);
-  }, [userRole]);
+    return filterTabs(userRole || 'admin', allTabs);
+  }, [userRole, feesEnabled, transportEnabled, analyticsEnabled, studentSearchEnabled, bulkUploadEnabled]);
 
   // Handle early returns AFTER all hooks
   if ((loading.students || loading.marks) && !isDataTimeout) {
@@ -386,18 +396,25 @@ const AdminDashboard = () => {
       {activeTab === 'overview' && (
         <>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div onClick={() => setActiveTab('search')} className="cursor-pointer transition-transform hover:-translate-y-0.5">
+            <div
+              onClick={() => studentSearchEnabled ? setActiveTab('search') : undefined}
+              className={studentSearchEnabled ? 'cursor-pointer transition-transform hover:-translate-y-0.5' : ''}
+            >
               <StatCard label={compareClass ? 'Class Students' : 'Total Students'} value={totalStudents} icon={Users} />
             </div>
-            <div onClick={() => setActiveTab('compare')} className="cursor-pointer transition-transform hover:-translate-y-0.5">
-              <StatCard label="Avg Performance" value={`${avgPerformance}%`} icon={TrendingUp} variant="success" />
-            </div>
+            {analyticsEnabled && (
+              <div onClick={() => setActiveTab('compare')} className="cursor-pointer transition-transform hover:-translate-y-0.5">
+                <StatCard label="Avg Performance" value={`${avgPerformance}%`} icon={TrendingUp} variant="success" />
+              </div>
+            )}
             <div onClick={() => setActiveTab('console')} className="cursor-pointer transition-transform hover:-translate-y-0.5">
               <StatCard label="Avg Attendance" value={`${avgAttendance}%`} icon={Calendar} variant={avgAttendance >= 85 ? 'success' : 'warning'} />
             </div>
-            <div onClick={() => { localStorage.setItem('active_data_form', 'fees'); setActiveTab('forms'); }} className="cursor-pointer transition-transform hover:-translate-y-0.5">
-              <StatCard label="Outstanding Fees" value={`₹${financialStats.pendingAmount.toLocaleString()}`} trend={`${financialStats.countPartial + financialStats.countUnpaid} students pending`} icon={IndianRupee} variant={financialStats.pendingAmount > 0 ? 'destructive' : 'success'} />
-            </div>
+            {feesEnabled && (
+              <div onClick={() => { localStorage.setItem('active_data_form', 'fees'); setActiveTab('forms'); }} className="cursor-pointer transition-transform hover:-translate-y-0.5">
+                <StatCard label="Outstanding Fees" value={`₹${financialStats.pendingAmount.toLocaleString()}`} trend={`${financialStats.countPartial + financialStats.countUnpaid} students pending`} icon={IndianRupee} variant={financialStats.pendingAmount > 0 ? 'destructive' : 'success'} />
+              </div>
+            )}
           </div>
 
           {/* System Alerts Section */}
@@ -423,8 +440,8 @@ const AdminDashboard = () => {
             </div>
           )}
 
-          {/* Fee Status Filter Strip */}
-          <div className="flex flex-wrap gap-3 mb-6">
+          {/* Fee Status Filter Strip — only shown when fees module is enabled */}
+          {feesEnabled && <div className="flex flex-wrap gap-3 mb-6">
             {[
               { key: 'feepaid', label: 'Paid', count: paidCount, color: 'success' },
               { key: 'feepartial', label: 'Partial', count: partialCount, color: 'warning' },
@@ -469,7 +486,7 @@ const AdminDashboard = () => {
             >
               <Send className="w-3.5 h-3.5" /> Generate Reminders
             </button>
-          </div>
+          </div>}
 
           <AnimatePresence>
             {reminderStudents.length > 0 && (
@@ -554,42 +571,46 @@ const AdminDashboard = () => {
             ))}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <div className="bg-card rounded-xl border border-border p-5">
-              <h3 className="font-display font-semibold text-foreground mb-4">Class-wise Performance</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <BarChart data={classData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="class" stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 12 }} />
-                  <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 12 }} />
-                  <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
-                  <Bar dataKey="average" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="bg-card rounded-xl border border-border p-5 overflow-visible">
-              <h3 className="font-display font-semibold text-foreground mb-4">Fee Status</h3>
-              <div className="flex items-center justify-center w-full">
+          {analyticsEnabled && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="bg-card rounded-xl border border-border p-5">
+                <h3 className="font-display font-semibold text-foreground mb-4">Class-wise Performance</h3>
                 <ResponsiveContainer width="100%" height={220}>
-                  <PieChart margin={{ top: 15, right: 15, bottom: 15, left: 15 }}>
-                    <Pie
-                      data={feeData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={80}
-                      dataKey="value"
-                      label={({ name, value }) => `${name}: ${value}`}
-                      labelLine={{ strokeWidth: 1, strokeOpacity: 0.5 }}
-                    >
-                      {feeData.map((_, i) => <Cell key={i} fill={pieColors[i]} />)}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
+                  <BarChart data={classData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="class" stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 12 }} />
+                    <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 12 }} />
+                    <Tooltip contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }} />
+                    <Bar dataKey="average" fill="hsl(var(--primary))" radius={[6, 6, 0, 0]} />
+                  </BarChart>
                 </ResponsiveContainer>
               </div>
+              {feesEnabled && (
+                <div className="bg-card rounded-xl border border-border p-5 overflow-visible">
+                  <h3 className="font-display font-semibold text-foreground mb-4">Fee Status</h3>
+                  <div className="flex items-center justify-center w-full">
+                    <ResponsiveContainer width="100%" height={220}>
+                      <PieChart margin={{ top: 15, right: 15, bottom: 15, left: 15 }}>
+                        <Pie
+                          data={feeData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={55}
+                          outerRadius={80}
+                          dataKey="value"
+                          label={({ name, value }) => `${name}: ${value}`}
+                          labelLine={{ strokeWidth: 1, strokeOpacity: 0.5 }}
+                        >
+                          {feeData.map((_, i) => <Cell key={i} fill={pieColors[i]} />)}
+                        </Pie>
+                        <Tooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
           {weakStudents.length > 0 && (
             <div className="bg-destructive/5 border border-destructive/20 rounded-xl p-5 mb-6">
@@ -627,7 +648,7 @@ const AdminDashboard = () => {
                     <th className="text-left py-2 text-muted-foreground font-medium hidden sm:table-cell">Class</th>
                     <th className="text-right py-2 text-muted-foreground font-medium">Performance</th>
                     <th className="text-right py-2 text-muted-foreground font-medium hidden sm:table-cell">Attendance</th>
-                    <th className="text-right py-2 text-muted-foreground font-medium hidden md:table-cell">Fees</th>
+                    {feesEnabled && <th className="text-right py-2 text-muted-foreground font-medium hidden md:table-cell">Fees</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -645,11 +666,20 @@ const AdminDashboard = () => {
                       <tr key={s.id} onClick={() => setSelectedStudent(s)} className="border-b border-border/50 cursor-pointer hover:bg-muted/30 transition-colors">
                         <td className="py-3">
                           <div className="flex items-center gap-3">
-                            <StudentAvatar
-                              student={s}
-                              className="w-8 h-8 rounded-lg"
-                              initialsClassName="text-xs font-bold text-primary-foreground"
-                            />
+                            {profilePictureEnabled ? (
+                              <StudentAvatar
+                                student={s}
+                                className="w-8 h-8 rounded-lg"
+                                initialsClassName="text-xs font-bold text-primary-foreground"
+                              />
+                            ) : (
+                              <div
+                                className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-primary-foreground"
+                                style={{ backgroundColor: s.avatarColor || '#6366f1' }}
+                              >
+                                {(s.name || 'S').slice(0, 2).toUpperCase()}
+                              </div>
+                            )}
                             <div>
                               <div className="font-medium text-foreground">{s.name || "Unknown"}</div>
                               <div className="text-xs text-muted-foreground sm:hidden">{getClassName(s.classId, storeClasses)}-{s.section || "N/A"}</div>
@@ -660,14 +690,16 @@ const AdminDashboard = () => {
                         <td className="py-3 text-muted-foreground hidden sm:table-cell">{getClassName(s.classId, storeClasses)}-{s.section}</td>
                         <td className={`py-3 text-right font-medium ${pct >= 75 ? 'text-success' : pct >= 50 ? 'text-warning' : 'text-destructive'}`}>{pct}%</td>
                         <td className={`py-3 text-right hidden sm:table-cell ${att >= 85 ? 'text-success' : 'text-warning'}`}>{att}%</td>
-                        <td className="py-3 text-right hidden md:table-cell">
-                          <div className="flex flex-col items-end gap-0.5">
-                            <span className={`px-2 py-1 rounded-md text-xs font-medium ${feeBadgeClass}`}>{feeLabel}</span>
-                            {feeStatus.total > 0 && (
-                              <span className="text-xs text-muted-foreground">₹{feeStatus.paid}/{feeStatus.total}</span>
-                            )}
-                          </div>
-                        </td>
+                        {feesEnabled && (
+                          <td className="py-3 text-right hidden md:table-cell">
+                            <div className="flex flex-col items-end gap-0.5">
+                              <span className={`px-2 py-1 rounded-md text-xs font-medium ${feeBadgeClass}`}>{feeLabel}</span>
+                              {feeStatus.total > 0 && (
+                                <span className="text-xs text-muted-foreground">₹{feeStatus.paid}/{feeStatus.total}</span>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useStore } from '@/store/useStore';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 import { Student, Mark, Feedback, FeeRecord, Payment, ACADEMIC_MONTHS } from '@/lib/types';
 import { calculateFeeStatus, getStudentsByClassSection, getFeeSummary, normalizeClassString, getClassName, getUniqueSections, getAcademicContext, getNextPayableMonth, getPaymentMonthGuard } from '@/lib/data-utils';
 import ClassSectionFilter from '@/components/ClassSectionFilter';
@@ -19,18 +20,35 @@ type FormTab = 'student' | 'marks' | 'attendance' | 'feedback' | 'fees';
 const DataEntryForms = () => {
   const { schoolId, role } = useAuth();
   const { students, loading, addStudent, addMark, classes } = useStore();
+  const { isModuleEnabled, hasFeature } = useSchoolSettings();
+
+  // Module flags — gates form tabs per school settings
+  const marksEnabled    = isModuleEnabled('marks');
+  const attendanceEnabled = isModuleEnabled('attendance');
+  const feesEnabled     = isModuleEnabled('fees');
+  const feedbackEnabled = isModuleEnabled('feedback');
+  const bulkUploadEnabled = hasFeature('bulk_upload');
 
   const formTabs = useMemo(() => {
     const allTabs: { id: FormTab; label: string; icon: React.ReactNode }[] = [
-      { id: 'student', label: 'Register Student', icon: <UserPlus className="w-4 h-4" /> },
-      { id: 'marks', label: 'Enter Marks', icon: <ClipboardList className="w-4 h-4" /> },
-      { id: 'attendance', label: 'Attendance', icon: <Calendar className="w-4 h-4" /> },
-      { id: 'feedback', label: 'Feedback', icon: <MessageSquare className="w-4 h-4" /> },
-      { id: 'fees', label: 'Fee Update', icon: <IndianRupee className="w-4 h-4" /> },
+      { id: 'student',    label: 'Register Student', icon: <UserPlus className="w-4 h-4" /> },
+      { id: 'marks',      label: 'Enter Marks',      icon: <ClipboardList className="w-4 h-4" /> },
+      { id: 'attendance', label: 'Attendance',        icon: <Calendar className="w-4 h-4" /> },
+      { id: 'feedback',   label: 'Feedback',          icon: <MessageSquare className="w-4 h-4" /> },
+      { id: 'fees',       label: 'Fee Update',        icon: <IndianRupee className="w-4 h-4" /> },
     ];
     if (!role) return [];
-    return allTabs.filter(tab => hasSubAccess(role, tab.id));
-  }, [role]);
+    return allTabs.filter(tab => {
+      // 1. RBAC role check
+      if (!hasSubAccess(role, tab.id)) return false;
+      // 2. Module/feature check — if module is disabled for this school, hide the tab
+      if (tab.id === 'marks'      && !marksEnabled)    return false;
+      if (tab.id === 'attendance' && !attendanceEnabled) return false;
+      if (tab.id === 'fees'       && !feesEnabled)     return false;
+      if (tab.id === 'feedback'   && !feedbackEnabled) return false;
+      return true;
+    });
+  }, [role, marksEnabled, attendanceEnabled, feesEnabled, feedbackEnabled]);
 
   const [activeForm, setActiveForm] = useState<FormTab>(() => {
     const saved = localStorage.getItem('active_data_form') as FormTab;

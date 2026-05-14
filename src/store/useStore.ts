@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { Student, Mark, AttendanceRecord, Fee, BusRoute, Feedback, LoginCredential, FeeConfig, ExamConfig, SubjectConfig, ClassConfig, AppUser, Payment } from '@/lib/types';
 import { dedupeAttendanceRecords, getAttendanceDocId, normalizeAttendanceRecord, sanitize } from '@/lib/data-utils';
 import { toast } from 'sonner';
+import { useSchoolSettingsStore } from '@/store/useSchoolSettingsStore';
 
 
 interface AppState {
@@ -148,6 +149,12 @@ const assembleUnifiedMarks = (rawMarks: Mark[], students: Student[], exams: Exam
     return unified;
 };
 
+const transportModuleEnabled = () =>
+  useSchoolSettingsStore.getState().isModuleEnabled('transport_module');
+
+const profilePicturesEnabled = () =>
+  useSchoolSettingsStore.getState().hasFeature('profile_picture');
+
 const normalizeClass = (student: Student, classes: ClassConfig[]) => {
     const cls = classes.find(c => c.classId === student.classId || c.id === student.classId);
     return {
@@ -282,6 +289,10 @@ export const useStore = create<AppState>((set, get) => ({
     setAttendance: (attendance) => set({ attendance }),
 
     addBusRoute: async (schoolId, route) => {
+        if (!transportModuleEnabled()) {
+            toast.error('Transport module is disabled for this school');
+            return;
+        }
         try {
             const stops = (route.stops || []).map(s => ({
                 name: s.name,
@@ -313,6 +324,10 @@ export const useStore = create<AppState>((set, get) => ({
     },
 
     updateBusRoute: async (schoolId, routeId, data) => {
+        if (!transportModuleEnabled()) {
+            toast.error('Transport module is disabled for this school');
+            return;
+        }
         try {
             const updatePayload: any = { updated_at: new Date().toISOString() };
             if (data.status !== undefined) updatePayload.status = data.status;
@@ -335,6 +350,10 @@ export const useStore = create<AppState>((set, get) => ({
     },
 
     updateStudentTransport: async (schoolId, studentId, data) => {
+        if (!transportModuleEnabled()) {
+            toast.error('Transport module is disabled for this school');
+            return;
+        }
         try {
             const { error } = await supabase
                 .from('students')
@@ -430,6 +449,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     addStudent: async (schoolId, student) => {
         try {
+            const transportEnabled = transportModuleEnabled();
             const { error } = await supabase
                 .from('students')
                 .insert([{
@@ -447,10 +467,10 @@ export const useStore = create<AppState>((set, get) => ({
                     address: (student as any).address || "",
                     date_of_birth: (student as any).dateOfBirth || null,
                     blood_group: (student as any).bloodGroup || "",
-                    transport_enabled: (student as any).transport_enabled || false,
-                    uses_bus: (student as any).transport_enabled || false,
-                    bus_route_id: (student as any).bus?.route_id || null,
-                    bus_stop: (student as any).bus?.stop || null,
+                    transport_enabled: transportEnabled ? Boolean((student as any).transport_enabled) : false,
+                    uses_bus: transportEnabled ? Boolean((student as any).transport_enabled) : false,
+                    bus_route_id: transportEnabled ? ((student as any).bus?.route_id || (student as any).bus?.route || null) : null,
+                    bus_stop: transportEnabled ? ((student as any).bus?.stop || (student as any).bus?.stopName || null) : null,
                     created_at: new Date().toISOString()
                 }]);
 
@@ -962,6 +982,7 @@ export const useStore = create<AppState>((set, get) => ({
 
     saveFeeConfig: async (schoolId, config) => {
         // Safe SELECT → UPDATE or INSERT (no DB unique constraint needed)
+        const transportEnabled = transportModuleEnabled();
         const { data: existing } = await supabase
             .from('fee_configs')
             .select('id')
@@ -971,7 +992,7 @@ export const useStore = create<AppState>((set, get) => ({
 
         const payload = {
             monthly_fee: config.totalFee,
-            transport_fee: config.optionalCharges?.transport || config.transportFee || 0,
+            transport_fee: transportEnabled ? (config.optionalCharges?.transport || config.transportFee || 0) : 0,
             updated_at: new Date().toISOString(),
         };
 
@@ -1685,10 +1706,10 @@ export const useStore = create<AppState>((set, get) => ({
 
         set({ schoolNameLoading: true, schoolName: null });
         try {
-            // The actual column in the `schools` table is "School's Name"
+            // The actual column in the `schools` table is `school_name`
             const { data, error } = await supabase
                 .from('schools')
-                .select('"School\'s Name"')
+                .select('school_name')
                 .eq('id', schoolId)
                 .maybeSingle();
 
@@ -1698,8 +1719,7 @@ export const useStore = create<AppState>((set, get) => ({
                 return;
             }
 
-            // Supabase returns the key exactly as the column name
-            const rawName = (data as any)?.[`School's Name`] || '';
+            const rawName = (data as any)?.school_name || '';
             console.log('[fetchSchoolName] fetched:', rawName, 'for school:', schoolId);
             set({
                 schoolName: rawName,
@@ -1710,6 +1730,7 @@ export const useStore = create<AppState>((set, get) => ({
             set({ schoolName: '', schoolNameLoading: false });
         }
     },
+
 
     init: async (schoolId: string) => {
       // ─── Guard: skip if already initialized for the same school ─────────────

@@ -8,6 +8,7 @@ import { Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadUserProfileImage, uploadProfileImage } from '@/lib/profileImageUpload';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 
 interface ProfilePhotoWidgetProps {
   /** Current photo URL (or empty string) */
@@ -41,10 +42,12 @@ const ProfilePhotoWidget = ({
   editable = true,
 }: ProfilePhotoWidgetProps) => {
   const { user } = useAuth();
+  const { hasFeature } = useSchoolSettings();
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [preview, setPreview] = useState<string>(photoURL || '');
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const profilePicturesEnabled = hasFeature('profile_picture');
 
   // Update preview if parent changes photoURL
   React.useEffect(() => {
@@ -55,6 +58,10 @@ const ProfilePhotoWidget = ({
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file || uploading) return;
+    if (!profilePicturesEnabled) {
+      toast.error('Profile pictures are disabled for this school');
+      return;
+    }
 
     if (!file.type.startsWith('image/')) {
       toast.error('Please select an image file');
@@ -101,7 +108,7 @@ const ProfilePhotoWidget = ({
     <div className={`relative ${size} flex-shrink-0`}>
       {/* Avatar circle */}
       <div className={`${size} rounded-2xl overflow-hidden bg-gradient-to-br from-primary/80 to-secondary/80 flex items-center justify-center ring-2 ring-border`}>
-        {preview ? (
+        {profilePicturesEnabled && preview ? (
           <img src={preview} alt={name} className="w-full h-full object-cover" />
         ) : (
           <span className="text-xl font-bold text-white select-none">{getInitials(name)}</span>
@@ -117,7 +124,7 @@ const ProfilePhotoWidget = ({
       </div>
 
       {/* Camera button */}
-      {editable && !uploading && (
+      {profilePicturesEnabled && editable && !uploading && (
         <button
           type="button"
           onClick={() => inputRef.current?.click()}

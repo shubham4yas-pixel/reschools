@@ -236,7 +236,7 @@ export function getStudentPendingStatus(
         
         if (monthPayments.length > 0) {
             // Find highest amount_total recorded for this month or the most recent one
-            const recordedTarget = monthPayments.reduce((max, p) => Math.max(max, Number(p.amount_total || p.totalFee || 0)), 0);
+            const recordedTarget = monthPayments.reduce((max, p) => Math.max(max, Number(p.amount_total || (p as any).totalFee || 0)), 0);
             expectedFee += (recordedTarget > 0 ? recordedTarget : totalFee);
         } else {
             expectedFee += totalFee;

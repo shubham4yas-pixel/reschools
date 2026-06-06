@@ -562,6 +562,9 @@ const LoginPage = () => {
 
       {/* Footer */}
       <footer className="py-8 px-6 border-t border-border bg-background text-center">
+        <p className="text-xs text-muted-foreground mb-2">
+          Contact us: <a href="mailto:info.theschoolpulse@gmail.com" className="hover:text-foreground transition-colors underline">info.theschoolpulse@gmail.com</a>
+        </p>
         <p className="text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} SchoolPulse. School ERP for Fees, Attendance &amp; Student Management.
           &nbsp;|&nbsp; <a href="https://www.theschoolpulse.in/" className="underline hover:text-foreground transition-colors">theschoolpulse.in</a>

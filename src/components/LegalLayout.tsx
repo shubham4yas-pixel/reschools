@@ -4,6 +4,7 @@ import { BookOpen } from "lucide-react";
 import SidebarNav, { NavSection } from "./SidebarNav";
 import "./LegalLayout.css";
 
+import { BrandLogo } from "@/components/BrandLogo";
 interface LegalLayoutProps {
   title: string;
   subtitle?: string;
@@ -29,7 +30,7 @@ const LegalLayout = ({
             <div className="legal-logo-icon">
               <BookOpen size={18} strokeWidth={2.2} />
             </div>
-            <span className="legal-logo-text">Reschools</span>
+            <BrandLogo />
           </Link>
 
           <nav className="legal-header-links" aria-label="Legal pages">
@@ -69,7 +70,7 @@ const LegalLayout = ({
 
           {/* Footer row inside content */}
           <footer className="legal-content-footer">
-            <p>© {new Date().getFullYear()} Reschools ERP. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} <BrandLogo showERP />. All rights reserved.</p>
             <div className="legal-footer-links">
               <Link to="/privacy-policy">Privacy Policy</Link>
               <Link to="/terms-of-service">Terms of Service</Link>

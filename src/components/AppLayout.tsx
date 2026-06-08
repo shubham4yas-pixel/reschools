@@ -4,6 +4,7 @@ import { BookOpen, LogOut } from 'lucide-react';
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 
+import { BrandLogo } from "@/components/BrandLogo";
 const AppLayout = ({ children, title }: { children: ReactNode; title: string }) => {
   const { role, signOut } = useAuth();
   const { schoolName, schoolNameLoading } = useStore();
@@ -18,7 +19,7 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
             </div>
             <div className="flex flex-col justify-center">
               <span className="font-display font-bold text-lg tracking-tight leading-tight">
-                School<span className="italic text-primary">Pulse</span>
+                <BrandLogo />
               </span>
               <span className="text-xs font-medium text-muted-foreground capitalize leading-tight">
                 {role ? `${role} Dashboard` : 'Dashboard'}

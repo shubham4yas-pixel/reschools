@@ -11,34 +11,35 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { BrandLogo } from "@/components/BrandLogo";
 // ─────────────────────────────────────────────
 // Types
 // ─────────────────────────────────────────────
 interface FAQItem {
-  q: string;
-  a: string;
+  q: React.ReactNode;
+  a: React.ReactNode;
 }
 
 const faqs: FAQItem[] = [
   {
-    q: 'What is Reschools?',
-    a: 'Reschools is a web-based school ERP that helps schools manage fees, attendance, student records, exams, and parent communication — all from one dashboard. No installation needed.',
+    q: <>What is <BrandLogo />?</>,
+    a: <><BrandLogo /> is a web-based school ERP that helps schools manage fees, attendance, student records, exams, and parent communication — all from one dashboard. No installation needed.</>,
   },
   {
-    q: 'Who can use Reschools?',
+    q: <>Who can use <BrandLogo />?</>,
     a: 'School administrators, accountants, teachers, students, and parents each get a dedicated dashboard with role-specific tools and data.',
   },
   {
-    q: 'Does Reschools support fee collection and receipts?',
-    a: 'Yes. Reschools includes a complete fee management module with automated tracking, payment recording, and printable A4 receipts.',
+    q: <>Does <BrandLogo /> support fee collection and receipts?</>,
+    a: <>Yes. <BrandLogo /> includes a complete fee management module with automated tracking, payment recording, and printable A4 receipts.</>,
   },
   {
-    q: 'Is Reschools cloud-based?',
+    q: <>Is <BrandLogo /> cloud-based?</>,
     a: 'Yes. Fully cloud-based and accessible from any modern browser on any device. No hardware or installation required.',
   },
   {
     q: 'Is it suitable for small and medium-sized schools?',
-    a: 'Absolutely. Reschools is built specifically for small and medium schools that need a simple, reliable ERP without enterprise complexity.',
+    a: <>Absolutely. <BrandLogo /> is built specifically for small and medium schools that need a simple, reliable ERP without enterprise complexity.</>,
   },
 ];
 
@@ -263,7 +264,7 @@ const LoginPage = () => {
             <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary">
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold font-display text-foreground tracking-tight">Reschools</span>
+            <span className="text-xl font-bold font-display text-foreground tracking-tight"><BrandLogo /></span>
           </div>
 
           {/* H1 – Primary keyword heading */}
@@ -273,7 +274,7 @@ const LoginPage = () => {
             &amp; Management
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed mb-10 max-w-xl">
-            Reschools brings every part of your school into one dashboard — from fee collection and attendance to exam results and parent communication.
+            <BrandLogo /> brings every part of your school into one dashboard — from fee collection and attendance to exam results and parent communication.
           </p>
 
           {/* Quick benefit bullets */}
@@ -416,9 +417,9 @@ const LoginPage = () => {
         {/* Section: What Reschools Does */}
         <section aria-labelledby="section-what" className="py-16 px-6 lg:px-16 bg-muted/30 border-t border-border">
           <div className="max-w-5xl mx-auto">
-            <h2 id="section-what" className="text-2xl font-display font-bold text-foreground mb-4">What Reschools Does</h2>
+            <h2 id="section-what" className="text-2xl font-display font-bold text-foreground mb-4">What <BrandLogo /> Does</h2>
             <p className="text-muted-foreground text-base leading-relaxed max-w-3xl">
-              Reschools is a comprehensive school ERP (Enterprise Resource Planning) system built for
+              <BrandLogo /> is a comprehensive school ERP (Enterprise Resource Planning) system built for
               everyday school operations. It replaces paper registers, disconnected spreadsheets, and
               manual fee ledgers with a single, cloud-based platform that every stakeholder in the school
               can access from their own role-based dashboard.
@@ -431,9 +432,9 @@ const LoginPage = () => {
           <div className="max-w-5xl mx-auto">
             <h2 id="section-purpose" className="text-2xl font-display font-bold text-foreground mb-4">Purpose</h2>
             <p className="text-muted-foreground text-base leading-relaxed max-w-3xl">
-              Reschools exists to remove administrative friction from school management. Schools spend
+              <BrandLogo /> exists to remove administrative friction from school management. Schools spend
               hours every week on manual attendance registers, fee collection ledgers, and paper result
-              sheets. Reschools automates these workflows so that administrators, teachers, and parents
+              sheets. <BrandLogo /> automates these workflows so that administrators, teachers, and parents
               can focus on what matters — student learning outcomes.
             </p>
           </div>
@@ -509,7 +510,7 @@ const LoginPage = () => {
           <div className="max-w-5xl mx-auto">
             <h2 id="section-accessibility" className="text-2xl font-display font-bold text-foreground mb-4">Accessibility</h2>
             <p className="text-muted-foreground text-base leading-relaxed max-w-3xl">
-              Reschools is accessible from any device — desktop, tablet, or mobile — using a standard
+              <BrandLogo /> is accessible from any device — desktop, tablet, or mobile — using a standard
               web browser. No app download or special hardware is needed. The platform supports multiple
               concurrent users across roles, making it practical for schools of all sizes.
             </p>
@@ -519,7 +520,7 @@ const LoginPage = () => {
         {/* Section: Why Schools Choose Reschools */}
         <section aria-labelledby="section-why" className="py-16 px-6 lg:px-16 bg-muted/30 border-t border-border">
           <div className="max-w-5xl mx-auto">
-            <h2 id="section-why" className="text-2xl font-display font-bold text-foreground mb-6">Why Schools Choose Reschools</h2>
+            <h2 id="section-why" className="text-2xl font-display font-bold text-foreground mb-6">Why Schools Choose <BrandLogo /></h2>
             <div className="grid sm:grid-cols-3 gap-6">
               {[
                 { stat: 'One Platform', label: 'Replaces spreadsheets, paper registers, and disconnected tools.' },
@@ -541,7 +542,7 @@ const LoginPage = () => {
             <h2 id="section-erp-simple" className="text-2xl font-display font-bold text-foreground mb-4">School ERP Software Made Simple</h2>
             <p className="text-muted-foreground text-base leading-relaxed max-w-3xl">
               Most school ERP software attempts to serve every institution from primary schools to
-              universities, creating bloated, expensive products with steep learning curves. Reschools
+              universities, creating bloated, expensive products with steep learning curves. <BrandLogo />
               takes a different approach: it focuses exclusively on the core processes that every school
               needs - fee management, attendance, and academic tracking - and delivers them in a clean,
               fast, and affordable web application. Indian schools deserve ERP software that works the
@@ -566,7 +567,7 @@ const LoginPage = () => {
           Contact us: <a href="mailto:info.theschoolpulse@gmail.com" className="hover:text-foreground transition-colors underline">info.theschoolpulse@gmail.com</a>
         </p>
         <p className="text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Reschools. School ERP for Fees, Attendance &amp; Student Management.
+          &copy; {new Date().getFullYear()} <BrandLogo />. School ERP for Fees, Attendance &amp; Student Management.
           &nbsp;|&nbsp; <a href="https://www.reschools.in/" className="underline hover:text-foreground transition-colors">reschools.in</a>
         </p>
         <p className="text-xs text-muted-foreground/70 mt-2 flex items-center justify-center gap-3">

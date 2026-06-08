@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase';
 import { Loader2, Lock, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { BrandLogo } from "@/components/BrandLogo";
 type PageState = 'loading' | 'ready' | 'success' | 'error';
 
 const ResetPassword = () => {
@@ -187,7 +188,7 @@ const ResetPassword = () => {
           )}
         </div>
 
-        <p className="text-center text-white/20 text-xs mt-6">Reschools ERP · Secure Password Reset</p>
+        <p className="text-center text-white/20 text-xs mt-6"><BrandLogo showERP /> · Secure Password Reset</p>
       </div>
     </div>
   );

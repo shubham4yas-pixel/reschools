@@ -1,9 +1,10 @@
 import LegalLayout from "@/components/LegalLayout";
 import { NavSection } from "@/components/SidebarNav";
 
+import { BrandLogo } from "@/components/BrandLogo";
 const sections: NavSection[] = [
   { id: "commitment", label: "Our commitment" },
-  { id: "data-existence", label: "How data exists inside Reschools" },
+  { id: "data-existence", label: "How data exists inside <BrandLogo />" },
   { id: "data-collection", label: "What data we collect" },
   { id: "data-usage", label: "Why we process this data" },
   { id: "data-control", label: "Who controls the data" },
@@ -20,22 +21,22 @@ const sections: NavSection[] = [
 const PrivacyPolicy = () => {
   return (
     <>
-      <title>Privacy Policy | Reschools ERP</title>
+      <title>Privacy Policy | <BrandLogo showERP /></title>
       <meta
         name="description"
-        content="Understand how Reschools ERP collects, uses, and protects your school's data. Built for schools, not advertisers."
+        content="Understand how <BrandLogo showERP /> collects, uses, and protects your school's data. Built for schools, not advertisers."
       />
 
       <LegalLayout
         title="Privacy Policy"
-        subtitle="Reschools ERP is built for schools, not advertisers. Your school owns its data — we exist to securely store and process it."
+        subtitle="<BrandLogo showERP /> is built for schools, not advertisers. Your school owns its data — we exist to securely store and process it."
         effectiveDate="April 23, 2026"
         sections={sections}
       >
         <section id="commitment" className="legal-section">
           <h2 className="legal-section-heading">Our commitment to your data</h2>
           <p>
-            Reschools ERP is built for schools, not advertisers. That matters
+            <BrandLogo showERP /> is built for schools, not advertisers. That matters
             because the incentives are completely different.
           </p>
           <p>
@@ -53,10 +54,10 @@ const PrivacyPolicy = () => {
 
         <section id="data-existence" className="legal-section">
           <h2 className="legal-section-heading">
-            How data exists inside Reschools
+            How data exists inside <BrandLogo />
           </h2>
           <p>
-            Reschools is a multi-school platform where multiple institutions
+            <BrandLogo /> is a multi-school platform where multiple institutions
             operate within a shared system. Even though the infrastructure is
             shared, the data is not.
           </p>
@@ -101,7 +102,7 @@ const PrivacyPolicy = () => {
         <section id="data-usage" className="legal-section">
           <h2 className="legal-section-heading">Why we process this data</h2>
           <p>
-            The data processed within Reschools exists for one purpose: to
+            The data processed within <BrandLogo /> exists for one purpose: to
             enable schools to manage their operations.
           </p>
           <p>This includes:</p>
@@ -129,7 +130,7 @@ const PrivacyPolicy = () => {
             how it is used within their institution.
           </p>
           <p>
-            Reschools acts only as a processor. We handle the data strictly to
+            <BrandLogo /> acts only as a processor. We handle the data strictly to
             provide the service. We do not independently decide how that data
             should be used.
           </p>
@@ -176,7 +177,7 @@ const PrivacyPolicy = () => {
           <h2 className="legal-section-heading">How we protect data</h2>
           <p>
             We use industry-standard security practices to protect data stored
-            within Reschools.
+            within <BrandLogo />.
           </p>
           <p>This includes:</p>
           <ul>
@@ -198,7 +199,7 @@ const PrivacyPolicy = () => {
         <section id="retention" className="legal-section">
           <h2 className="legal-section-heading">How long we retain data</h2>
           <p>
-            We retain data for as long as a school continues to use Reschools.
+            We retain data for as long as a school continues to use <BrandLogo />.
           </p>
           <p>
             If a school chooses to stop using the platform, data may be deleted
@@ -226,7 +227,7 @@ const PrivacyPolicy = () => {
         <section id="children" className="legal-section">
           <h2 className="legal-section-heading">Children's data</h2>
           <p>
-            Reschools processes student data as part of school operations. This
+            <BrandLogo /> processes student data as part of school operations. This
             data is provided and controlled by the school.
           </p>
           <p>
@@ -252,12 +253,12 @@ const PrivacyPolicy = () => {
         <section id="contact" className="legal-section">
           <h2 className="legal-section-heading">Contact</h2>
           <p>
-            If you have questions about how data is handled in Reschools ERP,
+            If you have questions about how data is handled in <BrandLogo showERP />,
             please reach out to us directly through the platform or contact your
             account representative.
           </p>
           <p>
-            <strong>Reschools ERP</strong> is built on a simple principle:
+            <strong><BrandLogo showERP /></strong> is built on a simple principle:
             school data should remain private, controlled, and used only for the
             purpose it was created for.
           </p>

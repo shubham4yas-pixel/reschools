@@ -27,6 +27,7 @@ import { uploadProfileImage } from '@/lib/profileImageUpload';
 import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 
 
+import { BrandLogo } from "@/components/BrandLogo";
 interface StudentProfileProps {
   student: Student;
   onBack: () => void;
@@ -796,11 +797,11 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
                       <div>
                         <div className="flex items-center gap-2 mb-1.5">
                             <div className="w-9 h-9 bg-[#1a2744] rounded-xl flex items-center justify-center">
-                                <img src="/Favicon.png" alt="Reschools" className="w-5 h-5 object-contain" onError={(e) => {
+                                <img src="/Favicon.png" alt="ReSchools" className="w-5 h-5 object-contain" onError={(e) => {
                                   (e.target as HTMLImageElement).style.display = 'none';
                                 }} />
                             </div>
-                            <h1 className="text-2xl font-black text-slate-900 tracking-tight">Reschools</h1>
+                            <h1 className="text-2xl font-black text-slate-900 tracking-tight"><BrandLogo /></h1>
                         </div>
                         <p className="text-[11px] font-black text-indigo-600 uppercase tracking-[0.3em] ml-1">Official Payment Voucher</p>
                       </div>
@@ -808,7 +809,7 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
                         <div className="bg-slate-50 border border-slate-100 rounded-xl p-3 inline-block">
                             <p className="text-[9px] font-black text-slate-400 uppercase mb-0.5">Transaction ID</p>
                             <p className="text-xs font-mono font-bold text-slate-800">{selectedReceiptTransaction?.id || 'TRX-PENDING'}</p>
-                            <p className="text-[8px] font-bold text-slate-400 mt-0.5 uppercase italic">Generated via Reschools ERP</p>
+                            <p className="text-[8px] font-bold text-slate-400 mt-0.5 uppercase italic">Generated via <BrandLogo showERP /></p>
                         </div>
                       </div>
                     </div>
@@ -927,7 +928,7 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
                     <div className="mt-8 pt-5 border-t border-slate-100 flex justify-between items-center">
                         <div className="flex items-center gap-3">
                             <div className="w-9 h-9 bg-[#1a2744] rounded-xl flex items-center justify-center">
-                                <img src="/Favicon.png" alt="Reschools" className="w-5 h-5 object-contain" onError={(e) => {
+                                <img src="/Favicon.png" alt="ReSchools" className="w-5 h-5 object-contain" onError={(e) => {
                                   (e.target as HTMLImageElement).style.display = 'none';
                                 }} />
                             </div>

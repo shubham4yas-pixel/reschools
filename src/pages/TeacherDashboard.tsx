@@ -209,8 +209,8 @@ const TeacherOverviewTab = ({
                 <span className="text-sm font-medium text-muted-foreground w-6">#{index + 1}</span>
                 <StudentAvatar
                   student={student}
-                  className="w-8 h-8 rounded-lg"
-                  initialsClassName="text-xs font-bold text-primary-foreground"
+                  className="w-10 h-10 rounded-full"
+                  initialsClassName="text-sm font-bold text-white"
                 />
                 <div className="flex-1">
                   <div className="text-sm font-medium text-foreground">{student.name}</div>

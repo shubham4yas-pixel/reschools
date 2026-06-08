@@ -488,7 +488,7 @@ const ClassConsole = ({ onStudentClick }: { onStudentClick?: (student: Student) 
                                                             {/* Student Info */}
                                                             <td className="px-4 py-3">
                                                                 <div className="flex items-center gap-2">
-                                                                    <StudentAvatar student={s} className="w-8 h-8 rounded-lg" />
+                                                                    <StudentAvatar student={s} className="w-10 h-10 rounded-full" />
                                                                     <div className="flex flex-col min-w-0">
                                                                         <span className="font-bold text-foreground truncate">{s.name}</span>
                                                                         <span className="text-[10px] text-muted-foreground uppercase">Roll: {s.rollNumber || s.id}</span>

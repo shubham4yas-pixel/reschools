@@ -669,12 +669,12 @@ const AdminDashboard = () => {
                             {profilePictureEnabled ? (
                               <StudentAvatar
                                 student={s}
-                                className="w-8 h-8 rounded-lg"
-                                initialsClassName="text-xs font-bold text-primary-foreground"
+                                className="w-10 h-10 rounded-full"
+                                initialsClassName="text-sm font-bold text-white"
                               />
                             ) : (
                               <div
-                                className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-primary-foreground"
+                                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white"
                                 style={{ backgroundColor: s.avatarColor || '#6366f1' }}
                               >
                                 {(s.name || 'S').slice(0, 2).toUpperCase()}

@@ -216,7 +216,7 @@ function RankingsTable({ student, scope, students, marks }: { student: Student; 
               <StudentAvatar
                 student={s}
                 className="w-7 h-7 rounded-lg"
-                initialsClassName="text-xs font-bold text-primary-foreground"
+                initialsClassName="text-sm font-bold text-white"
               />
               <div className="flex-1 min-w-0">
                 <div className={`text-sm font-medium truncate ${isMe ? 'text-primary' : 'text-foreground'}`}>

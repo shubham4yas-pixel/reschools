@@ -215,7 +215,7 @@ const LoginPage = () => {
     if (!email.includes('@')) { toast.error('Enter a valid email address'); return; }
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'https://www.theschoolpulse.in/reset-password',
+        redirectTo: 'https://www.reschools.in/reset-password',
       });
       if (error) throw error;
       toast.success('Password reset email sent. Check your inbox.');
@@ -567,7 +567,7 @@ const LoginPage = () => {
         </p>
         <p className="text-xs text-muted-foreground">
           &copy; {new Date().getFullYear()} Reschools. School ERP for Fees, Attendance &amp; Student Management.
-          &nbsp;|&nbsp; <a href="https://www.theschoolpulse.in/" className="underline hover:text-foreground transition-colors">theschoolpulse.in</a>
+          &nbsp;|&nbsp; <a href="https://www.reschools.in/" className="underline hover:text-foreground transition-colors">reschools.in</a>
         </p>
         <p className="text-xs text-muted-foreground/70 mt-2 flex items-center justify-center gap-3">
           <Link to="/privacy-policy" className="hover:text-foreground hover:underline transition-colors">Privacy Policy</Link>

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.theschoolpulse.in/sitemap.xml
+Sitemap: https://www.reschools.in/sitemap.xml

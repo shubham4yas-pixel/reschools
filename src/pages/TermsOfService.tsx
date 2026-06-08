@@ -21,29 +21,29 @@ const sections: NavSection[] = [
 const TermsOfService = () => {
   return (
     <>
-      <title>Terms of Service | SchoolPulse ERP</title>
+      <title>Terms of Service | Reschools ERP</title>
       <meta
         name="description"
-        content="Read the Terms of Service for SchoolPulse ERP — the rules, obligations, and rights that govern your use of the platform."
+        content="Read the Terms of Service for Reschools ERP — the rules, obligations, and rights that govern your use of the platform."
       />
 
       <LegalLayout
         title="Terms of Service"
-        subtitle="These terms govern your use of SchoolPulse ERP. By using the platform, your institution agrees to these terms. Please read them carefully."
+        subtitle="These terms govern your use of Reschools ERP. By using the platform, your institution agrees to these terms. Please read them carefully."
         effectiveDate="April 23, 2026"
         sections={sections}
       >
         <section id="acceptance" className="legal-section">
           <h2 className="legal-section-heading">Acceptance of terms</h2>
           <p>
-            By accessing or using SchoolPulse ERP (the "Platform"), the school
+            By accessing or using Reschools ERP (the "Platform"), the school
             institution ("School," "you," or "your") agrees to be bound by these
             Terms of Service ("Terms"). If you do not agree to these Terms, you
             must not use the Platform.
           </p>
           <p>
             These Terms constitute a legally binding agreement between your
-            institution and SchoolPulse ERP ("we," "us," or "our"). Use of the
+            institution and Reschools ERP ("we," "us," or "our"). Use of the
             Platform by any authorised user of your institution constitutes
             acceptance of these Terms on behalf of the institution.
           </p>
@@ -52,7 +52,7 @@ const TermsOfService = () => {
         <section id="description" className="legal-section">
           <h2 className="legal-section-heading">Description of service</h2>
           <p>
-            SchoolPulse ERP is a cloud-based school management platform designed
+            Reschools ERP is a cloud-based school management platform designed
             to help educational institutions manage students, academics,
             attendance, fees, and administrative operations.
           </p>
@@ -68,7 +68,7 @@ const TermsOfService = () => {
           <h2 className="legal-section-heading">Eligibility</h2>
           <p>
             The Platform is intended for use by registered educational
-            institutions and their authorised staff. By using SchoolPulse ERP,
+            institutions and their authorised staff. By using Reschools ERP,
             you represent that:
           </p>
           <ul>
@@ -116,7 +116,7 @@ const TermsOfService = () => {
 
         <section id="school-obligations" className="legal-section">
           <h2 className="legal-section-heading">School obligations</h2>
-          <p>By using SchoolPulse ERP, your institution agrees to:</p>
+          <p>By using Reschools ERP, your institution agrees to:</p>
           <ul>
             <li>
               Provide accurate and complete information when setting up and
@@ -139,7 +139,7 @@ const TermsOfService = () => {
 
         <section id="acceptable-use" className="legal-section">
           <h2 className="legal-section-heading">Acceptable use</h2>
-          <p>You agree not to use SchoolPulse ERP to:</p>
+          <p>You agree not to use Reschools ERP to:</p>
           <ul>
             <li>
               Upload or transmit any data that is fraudulent, harmful, or
@@ -170,7 +170,7 @@ const TermsOfService = () => {
         <section id="data-ownership" className="legal-section">
           <h2 className="legal-section-heading">Data ownership</h2>
           <p>
-            All data entered into SchoolPulse ERP by a school — including student
+            All data entered into Reschools ERP by a school — including student
             records, academic data, fee data, and operational data — remains the
             property of that school.
           </p>
@@ -190,7 +190,7 @@ const TermsOfService = () => {
         <section id="intellectual-property" className="legal-section">
           <h2 className="legal-section-heading">Intellectual property</h2>
           <p>
-            SchoolPulse ERP, including its design, codebase, features, and brand,
+            Reschools ERP, including its design, codebase, features, and brand,
             is owned exclusively by us and protected by applicable intellectual
             property laws.
           </p>
@@ -210,7 +210,7 @@ const TermsOfService = () => {
         <section id="payment" className="legal-section">
           <h2 className="legal-section-heading">Payment &amp; billing</h2>
           <p>
-            Access to SchoolPulse ERP is subject to the subscription or pricing
+            Access to Reschools ERP is subject to the subscription or pricing
             plan agreed upon at the time of onboarding. Continued use of the
             Platform constitutes agreement to those fees.
           </p>
@@ -229,7 +229,7 @@ const TermsOfService = () => {
         <section id="availability" className="legal-section">
           <h2 className="legal-section-heading">Service availability</h2>
           <p>
-            We strive to keep SchoolPulse ERP available and reliable. However,
+            We strive to keep Reschools ERP available and reliable. However,
             we do not guarantee uninterrupted access.
           </p>
           <p>
@@ -248,7 +248,7 @@ const TermsOfService = () => {
         <section id="termination" className="legal-section">
           <h2 className="legal-section-heading">Termination</h2>
           <p>
-            Either party may terminate the use of SchoolPulse ERP by providing
+            Either party may terminate the use of Reschools ERP by providing
             reasonable written notice as specified in your service agreement.
           </p>
           <p>
@@ -270,7 +270,7 @@ const TermsOfService = () => {
         <section id="liability" className="legal-section">
           <h2 className="legal-section-heading">Limitation of liability</h2>
           <p>
-            To the fullest extent permitted by applicable law, SchoolPulse ERP
+            To the fullest extent permitted by applicable law, Reschools ERP
             shall not be liable for any indirect, incidental, special, or
             consequential damages arising from the use of — or inability to use —
             the Platform.
@@ -294,7 +294,7 @@ const TermsOfService = () => {
             where appropriate, notify users through the Platform.
           </p>
           <p>
-            Continued use of SchoolPulse ERP after an update to these Terms
+            Continued use of Reschools ERP after an update to these Terms
             constitutes acceptance of the revised Terms. If your institution does
             not agree with updated Terms, you should stop using the Platform and
             request data export or deletion.
@@ -305,12 +305,12 @@ const TermsOfService = () => {
           <h2 className="legal-section-heading">Contact</h2>
           <p>
             If you have questions about these Terms or wish to discuss your
-            institution's specific arrangement with SchoolPulse ERP, please
+            institution's specific arrangement with Reschools ERP, please
             reach out through the platform or contact your account
             representative directly.
           </p>
           <p>
-            <strong>SchoolPulse ERP</strong> — built to help schools run better,
+            <strong>Reschools ERP</strong> — built to help schools run better,
             on terms you can trust.
           </p>
         </section>

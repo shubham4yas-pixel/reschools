@@ -187,7 +187,7 @@ const ResetPassword = () => {
           )}
         </div>
 
-        <p className="text-center text-white/20 text-xs mt-6">SchoolPulse ERP · Secure Password Reset</p>
+        <p className="text-center text-white/20 text-xs mt-6">Reschools ERP · Secure Password Reset</p>
       </div>
     </div>
   );

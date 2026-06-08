@@ -21,24 +21,24 @@ interface FAQItem {
 
 const faqs: FAQItem[] = [
   {
-    q: 'What is SchoolPulse?',
-    a: 'SchoolPulse is a web-based school ERP that helps schools manage fees, attendance, student records, exams, and parent communication — all from one dashboard. No installation needed.',
+    q: 'What is Reschools?',
+    a: 'Reschools is a web-based school ERP that helps schools manage fees, attendance, student records, exams, and parent communication — all from one dashboard. No installation needed.',
   },
   {
-    q: 'Who can use SchoolPulse?',
+    q: 'Who can use Reschools?',
     a: 'School administrators, accountants, teachers, students, and parents each get a dedicated dashboard with role-specific tools and data.',
   },
   {
-    q: 'Does SchoolPulse support fee collection and receipts?',
-    a: 'Yes. SchoolPulse includes a complete fee management module with automated tracking, payment recording, and printable A4 receipts.',
+    q: 'Does Reschools support fee collection and receipts?',
+    a: 'Yes. Reschools includes a complete fee management module with automated tracking, payment recording, and printable A4 receipts.',
   },
   {
-    q: 'Is SchoolPulse cloud-based?',
+    q: 'Is Reschools cloud-based?',
     a: 'Yes. Fully cloud-based and accessible from any modern browser on any device. No hardware or installation required.',
   },
   {
     q: 'Is it suitable for small and medium-sized schools?',
-    a: 'Absolutely. SchoolPulse is built specifically for small and medium schools that need a simple, reliable ERP without enterprise complexity.',
+    a: 'Absolutely. Reschools is built specifically for small and medium schools that need a simple, reliable ERP without enterprise complexity.',
   },
 ];
 
@@ -263,7 +263,7 @@ const LoginPage = () => {
             <div className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-primary">
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold font-display text-foreground tracking-tight">SchoolPulse</span>
+            <span className="text-xl font-bold font-display text-foreground tracking-tight">Reschools</span>
           </div>
 
           {/* H1 – Primary keyword heading */}
@@ -273,7 +273,7 @@ const LoginPage = () => {
             &amp; Management
           </h1>
           <p className="text-muted-foreground text-lg leading-relaxed mb-10 max-w-xl">
-            SchoolPulse brings every part of your school into one dashboard — from fee collection and attendance to exam results and parent communication.
+            Reschools brings every part of your school into one dashboard — from fee collection and attendance to exam results and parent communication.
           </p>
 
           {/* Quick benefit bullets */}
@@ -411,14 +411,14 @@ const LoginPage = () => {
       </div>
 
       {/* ── SEO Content Sections (below the fold) ──────── */}
-      <main id="seo-content" aria-label="SchoolPulse product information">
+      <main id="seo-content" aria-label="Reschools product information">
 
-        {/* Section: What SchoolPulse Does */}
+        {/* Section: What Reschools Does */}
         <section aria-labelledby="section-what" className="py-16 px-6 lg:px-16 bg-muted/30 border-t border-border">
           <div className="max-w-5xl mx-auto">
-            <h2 id="section-what" className="text-2xl font-display font-bold text-foreground mb-4">What SchoolPulse Does</h2>
+            <h2 id="section-what" className="text-2xl font-display font-bold text-foreground mb-4">What Reschools Does</h2>
             <p className="text-muted-foreground text-base leading-relaxed max-w-3xl">
-              SchoolPulse is a comprehensive school ERP (Enterprise Resource Planning) system built for
+              Reschools is a comprehensive school ERP (Enterprise Resource Planning) system built for
               everyday school operations. It replaces paper registers, disconnected spreadsheets, and
               manual fee ledgers with a single, cloud-based platform that every stakeholder in the school
               can access from their own role-based dashboard.
@@ -431,9 +431,9 @@ const LoginPage = () => {
           <div className="max-w-5xl mx-auto">
             <h2 id="section-purpose" className="text-2xl font-display font-bold text-foreground mb-4">Purpose</h2>
             <p className="text-muted-foreground text-base leading-relaxed max-w-3xl">
-              SchoolPulse exists to remove administrative friction from school management. Schools spend
+              Reschools exists to remove administrative friction from school management. Schools spend
               hours every week on manual attendance registers, fee collection ledgers, and paper result
-              sheets. SchoolPulse automates these workflows so that administrators, teachers, and parents
+              sheets. Reschools automates these workflows so that administrators, teachers, and parents
               can focus on what matters — student learning outcomes.
             </p>
           </div>
@@ -443,7 +443,7 @@ const LoginPage = () => {
         <section aria-labelledby="section-features" className="py-16 px-6 lg:px-16 bg-muted/30 border-t border-border">
           <div className="max-w-5xl mx-auto">
             <h2 id="section-features" className="text-2xl font-display font-bold text-foreground mb-8">Key Features</h2>
-            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="SchoolPulse features">
+            <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" aria-label="Reschools features">
               {features.map((f) => (
                 <li key={f.title} className="bg-card border border-border rounded-xl p-5 flex flex-col gap-3">
                   <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
@@ -509,17 +509,17 @@ const LoginPage = () => {
           <div className="max-w-5xl mx-auto">
             <h2 id="section-accessibility" className="text-2xl font-display font-bold text-foreground mb-4">Accessibility</h2>
             <p className="text-muted-foreground text-base leading-relaxed max-w-3xl">
-              SchoolPulse is accessible from any device — desktop, tablet, or mobile — using a standard
+              Reschools is accessible from any device — desktop, tablet, or mobile — using a standard
               web browser. No app download or special hardware is needed. The platform supports multiple
               concurrent users across roles, making it practical for schools of all sizes.
             </p>
           </div>
         </section>
 
-        {/* Section: Why Schools Choose SchoolPulse */}
+        {/* Section: Why Schools Choose Reschools */}
         <section aria-labelledby="section-why" className="py-16 px-6 lg:px-16 bg-muted/30 border-t border-border">
           <div className="max-w-5xl mx-auto">
-            <h2 id="section-why" className="text-2xl font-display font-bold text-foreground mb-6">Why Schools Choose SchoolPulse</h2>
+            <h2 id="section-why" className="text-2xl font-display font-bold text-foreground mb-6">Why Schools Choose Reschools</h2>
             <div className="grid sm:grid-cols-3 gap-6">
               {[
                 { stat: 'One Platform', label: 'Replaces spreadsheets, paper registers, and disconnected tools.' },
@@ -541,7 +541,7 @@ const LoginPage = () => {
             <h2 id="section-erp-simple" className="text-2xl font-display font-bold text-foreground mb-4">School ERP Software Made Simple</h2>
             <p className="text-muted-foreground text-base leading-relaxed max-w-3xl">
               Most school ERP software attempts to serve every institution from primary schools to
-              universities, creating bloated, expensive products with steep learning curves. SchoolPulse
+              universities, creating bloated, expensive products with steep learning curves. Reschools
               takes a different approach: it focuses exclusively on the core processes that every school
               needs - fee management, attendance, and academic tracking - and delivers them in a clean,
               fast, and affordable web application. Indian schools deserve ERP software that works the
@@ -566,7 +566,7 @@ const LoginPage = () => {
           Contact us: <a href="mailto:info.theschoolpulse@gmail.com" className="hover:text-foreground transition-colors underline">info.theschoolpulse@gmail.com</a>
         </p>
         <p className="text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} SchoolPulse. School ERP for Fees, Attendance &amp; Student Management.
+          &copy; {new Date().getFullYear()} Reschools. School ERP for Fees, Attendance &amp; Student Management.
           &nbsp;|&nbsp; <a href="https://www.theschoolpulse.in/" className="underline hover:text-foreground transition-colors">theschoolpulse.in</a>
         </p>
         <p className="text-xs text-muted-foreground/70 mt-2 flex items-center justify-center gap-3">

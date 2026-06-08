@@ -1,6 +1,6 @@
-# SchoolPulse - Modern School Management ERP
+# Reschools - Modern School Management ERP
 
-SchoolPulse is a comprehensive school management system designed for efficient academic administration, fee management, and student performance tracking.
+Reschools is a comprehensive school management system designed for efficient academic administration, fee management, and student performance tracking.
 
 ## Features
 

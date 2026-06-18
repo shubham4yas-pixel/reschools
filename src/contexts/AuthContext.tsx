@@ -261,6 +261,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Used to skip the redundant SIGNED_IN echo Supabase emits for the same pre-existing
     // session — but NOT for a brand-new login that happens after a cold start.
     let skipNextSignedIn = false;
+    // Tracks the user id we've already synced, so a token refresh or the
+    // SIGNED_IN echo Supabase re-emits when the tab regains focus does not
+    // re-sync the same user (which would unmount the dashboard via the
+    // authLoading spinner in ProtectedRoute).
+    let syncedUserId: string | null = null;
 
     const loadSession = async () => {
       setAuthLoading(true);
@@ -282,6 +287,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (mounted && data.session?.user) {
         // An existing session exists — sync it and mark that the next SIGNED_IN echo should be skipped.
         await syncSession(data.session.user.id, data.session.user.email);
+        syncedUserId = data.session.user.id;
         skipNextSignedIn = true;
       } else if (mounted) {
         console.log('[Auth] loadSession — no existing session, showing login');
@@ -297,6 +303,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: subscription } = supabase.auth.onAuthStateChange((event, session) => {
       // Skip INITIAL_SESSION — loadSession() already covers it.
       if (event === 'INITIAL_SESSION') return;
+
+      // A token refresh does NOT change who is logged in. Supabase fires it
+      // periodically AND whenever the browser tab regains focus; handling it
+      // here would flip authLoading and remount the whole dashboard (the
+      // ProtectedRoute spinner), which is what made the app "refresh" every
+      // time you switched back to the tab. Ignore it — Supabase keeps the
+      // refreshed token internally regardless.
+      if (event === 'TOKEN_REFRESHED') return;
 
       console.log('[Auth] onAuthStateChange — event:', event, '| uid:', session?.user?.id ?? 'none');
 
@@ -323,8 +337,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // emitted by Supabase is just an echo of that same session. Skip it once.
         // Do NOT skip for a genuine new login (signInWithPassword sets a new session
         // so the user.id will be the same, but we only skip the very first echo).
-        if (event === 'SIGNED_IN' && skipNextSignedIn) {
-          console.log('[Auth] onAuthStateChange — skipping redundant SIGNED_IN echo from existing session');
+        // Skip a SIGNED_IN that just re-confirms the user we already have —
+        // both the startup echo and the one Supabase re-emits when the tab
+        // regains focus. Only a genuinely different (or first) user re-syncs.
+        if (event === 'SIGNED_IN' && (skipNextSignedIn || session?.user?.id === syncedUserId)) {
+          console.log('[Auth] onAuthStateChange — skipping redundant SIGNED_IN for already-synced user');
           skipNextSignedIn = false; // Reset: future logins must be processed normally
           return;
         }
@@ -334,13 +351,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (session?.user) {
             console.log('[Auth] onAuthStateChange — syncing session for event:', event);
             await syncSession(session.user.id, session.user.email);
+            syncedUserId = session.user.id;
           } else {
             console.log('[Auth] onAuthStateChange — no user in session, resetting auth state');
             resetAuthState();
+            syncedUserId = null;
           }
         } catch (error) {
           console.error('[Auth] onAuthStateChange — sync error:', error);
-          if (mounted) resetAuthState();
+          if (mounted) {
+            resetAuthState();
+            syncedUserId = null;
+          }
         } finally {
           if (mounted) setAuthLoading(false);
         }

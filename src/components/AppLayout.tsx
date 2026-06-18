@@ -5,7 +5,15 @@ import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 
 import { BrandLogo } from "@/components/BrandLogo";
-const AppLayout = ({ children, title }: { children: ReactNode; title: string }) => {
+import { DashboardRail, DashboardNavMobile, NavItem } from "@/components/DashboardNav";
+
+interface DashboardNavConfig {
+  items: NavItem[];
+  activeId: string;
+  onSelect: (id: string) => void;
+}
+
+const AppLayout = ({ children, title, nav }: { children: ReactNode; title: string; nav?: DashboardNavConfig }) => {
   const { role, signOut } = useAuth();
   const { schoolName, schoolNameLoading } = useStore();
 
@@ -37,18 +45,24 @@ const AppLayout = ({ children, title }: { children: ReactNode; title: string }) 
           </div>
         </div>
       </header>
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-          className="flex flex-col gap-6"
-        >
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-display font-bold tracking-tight">{title}</h1>
-          </div>
-          {children}
-        </motion.div>
+
+      {nav && <DashboardRail items={nav.items} activeId={nav.activeId} onSelect={nav.onSelect} />}
+
+      <main className={nav ? 'lg:pl-[76px]' : ''}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="flex flex-col gap-6"
+          >
+            <div className="flex items-center justify-between">
+              <h1 className="text-3xl font-display font-bold tracking-tight">{title}</h1>
+            </div>
+            {nav && <DashboardNavMobile items={nav.items} activeId={nav.activeId} onSelect={nav.onSelect} />}
+            {children}
+          </motion.div>
+        </div>
       </main>
     </div>
   );

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
@@ -12,15 +12,20 @@ import NetworkStatus from "@/components/NetworkStatus";
 import { useStore } from "@/store/useStore";
 import { useSchoolSettingsStore } from "@/store/useSchoolSettingsStore";
 import ProtectedRoute, { getRoleHomePath } from "@/components/ProtectedRoute";
-import AdminDashboard from "@/pages/AdminDashboard";
-import TeacherDashboard from "@/pages/TeacherDashboard";
-import StudentDashboard from "@/pages/StudentDashboard";
-import ParentDashboard from "@/pages/ParentDashboard";
 import Login from "@/pages/Login";
-import ResetPassword from "@/pages/ResetPassword";
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
-import TermsOfService from "@/pages/TermsOfService";
 import { Loader2 } from "lucide-react";
+
+// Route components are lazy-loaded so the initial download (the login screen)
+// no longer bundles every dashboard and the charting library up front. Each
+// dashboard — and its heavy deps like recharts — is fetched only when first
+// visited, which cuts the first-load JS the browser must parse.
+const AdminDashboard = lazy(() => import("@/pages/AdminDashboard"));
+const TeacherDashboard = lazy(() => import("@/pages/TeacherDashboard"));
+const StudentDashboard = lazy(() => import("@/pages/StudentDashboard"));
+const ParentDashboard = lazy(() => import("@/pages/ParentDashboard"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const PrivacyPolicy = lazy(() => import("@/pages/PrivacyPolicy"));
+const TermsOfService = lazy(() => import("@/pages/TermsOfService"));
 
 const queryClient = new QueryClient();
 
@@ -80,6 +85,11 @@ const App = () => {
               <Sonner />
               <BrowserRouter>
                 <AppBootstrap />
+                <Suspense fallback={(
+                  <div className="flex h-screen items-center justify-center bg-background">
+                    <Loader2 className="w-10 h-10 text-primary animate-spin" />
+                  </div>
+                )}>
                 <Routes>
                   <Route path="/" element={<AuthGate />} />
                   <Route path="/admin" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
@@ -93,6 +103,7 @@ const App = () => {
                   <Route path="/terms-of-service" element={<TermsOfService />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                </Suspense>
               </BrowserRouter>
             </SchoolSettingsProvider>
           </AuthProvider>

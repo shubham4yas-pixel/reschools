@@ -16,6 +16,7 @@ import FeeSettings from '@/components/FeeSettings';
 import AcademicSettings from '@/components/AcademicSettings';
 import ProfileErrorBoundary from '@/components/ProfileErrorBoundary';
 import StudentAvatar from '@/components/StudentAvatar';
+import KeepAlive from '@/components/KeepAlive';
 import { useAuth } from '@/contexts/AuthContext';
 import { useStore } from '@/store/useStore';
 import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
@@ -260,7 +261,7 @@ const AdminDashboard = () => {
   }, [userRole, feesEnabled, transportEnabled, analyticsEnabled, studentSearchEnabled, bulkUploadEnabled]);
 
   // Handle early returns AFTER all hooks
-  if ((loading.students || loading.marks) && !isDataTimeout) {
+  if ((loading.students || loading.marks) && students.length === 0 && !isDataTimeout) {
     return (
       <AppLayout title="School Overview">
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
@@ -289,7 +290,17 @@ const AdminDashboard = () => {
   };
 
   return (
-    <AppLayout title="School Overview">
+    <AppLayout
+      title="School Overview"
+      nav={{
+        items: adminTabs,
+        activeId: activeTab,
+        onSelect: (id) => {
+          if (id === 'forms') localStorage.setItem('active_data_form', 'student');
+          setActiveTab(id as AdminTab);
+        },
+      }}
+    >
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8 mt-2">
         <div>
           <h1 className="text-4xl font-display font-bold text-foreground tracking-tighter">
@@ -306,36 +317,19 @@ const AdminDashboard = () => {
 
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-8">
-        {adminTabs.map(tab => (
-          <button key={tab.id} onClick={() => {
-            if (tab.id === 'forms') {
-              localStorage.setItem('active_data_form', 'student');
-            }
-            setActiveTab(tab.id);
-          }}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === tab.id
-              ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/30 -translate-y-0.5'
-              : 'bg-card border border-border text-muted-foreground hover:bg-muted hover:text-foreground'
-              }`}>
-            {tab.icon}{tab.label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'console' && <ClassConsole onStudentClick={(s) => setSelectedStudent(s)} />}
+      <KeepAlive active={activeTab === 'console'}><ClassConsole onStudentClick={(s) => setSelectedStudent(s)} /></KeepAlive>
       {activeTab === 'forms' && <DataEntryForms />}
-      {activeTab === 'search' && <StudentSearch />}
-      {activeTab === 'bus' && <BusManagement />}
-      {activeTab === 'academic_settings' && <AcademicSettings schoolId={schoolId} />}
-      {activeTab === 'settings' && <FeeSettings schoolId={schoolId} />}
-      {activeTab === 'credentials' && <CredentialManager />}
+      <KeepAlive active={activeTab === 'search'}><StudentSearch /></KeepAlive>
+      <KeepAlive active={activeTab === 'bus'}><BusManagement /></KeepAlive>
+      <KeepAlive active={activeTab === 'academic_settings'}><AcademicSettings schoolId={schoolId} /></KeepAlive>
+      <KeepAlive active={activeTab === 'settings'}><FeeSettings schoolId={schoolId} /></KeepAlive>
+      <KeepAlive active={activeTab === 'credentials'}><CredentialManager /></KeepAlive>
 
-      {activeTab === 'upload' && (
+      <KeepAlive active={activeTab === 'upload'}>
         <div className="bg-card rounded-2xl border border-border p-8 shadow-soft">
           <FileUpload />
         </div>
-      )}
+      </KeepAlive>
 
       {activeTab === 'compare' && (
         <div className="space-y-4">

@@ -19,6 +19,7 @@ import {
 import useStudentFeedback from '@/hooks/useStudentFeedback';
 import { Student } from '@/lib/types';
 import { TrendingUp, Calendar, Award, MessageSquare, Sparkles, BarChart3, BookOpen, Bus, Search, Loader2 } from 'lucide-react';
+import KeepAlive from '@/components/KeepAlive';
 
 type StudentTab = 'overview' | 'compare' | 'bus';
 
@@ -40,7 +41,7 @@ const StudentDashboard = () => {
     publishedOnly: true,
   });
 
-  if (loading.students || loading.marks) {
+  if ((loading.students || loading.marks) && students.length === 0) {
     return (
       <AppLayout title="Student Dashboard">
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
@@ -83,7 +84,14 @@ const StudentDashboard = () => {
   ];
 
   return (
-    <AppLayout title={`Welcome, ${student.name.split(' ')[0]}`}>
+    <AppLayout
+      title={`Welcome, ${student.name.split(' ')[0]}`}
+      nav={{
+        items: tabs,
+        activeId: activeTab,
+        onSelect: (id) => setActiveTab(id as StudentTab),
+      }}
+    >
       {/* Student profile header card */}
       <div className="flex items-center gap-4 mb-6 p-4 bg-card border border-border rounded-2xl">
         <ProfilePhotoWidget
@@ -102,18 +110,8 @@ const StudentDashboard = () => {
         </div>
       </div>
 
-      <div className="flex gap-2 mb-6">
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === tab.id ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/30'
-              }`}>
-            {tab.icon}{tab.label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'bus' && <BusManagement studentId={student.id} />}
-      {activeTab === 'compare' && <PeerComparison student={student} viewerRole="student" />}
+      <KeepAlive active={activeTab === 'bus'}><BusManagement studentId={student.id} /></KeepAlive>
+      <KeepAlive active={activeTab === 'compare'}><PeerComparison student={student} viewerRole="student" /></KeepAlive>
       {activeTab === 'overview' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">

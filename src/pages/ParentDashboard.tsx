@@ -18,6 +18,7 @@ import {
 import useStudentFeedback from '@/hooks/useStudentFeedback';
 import { Student } from '@/lib/types';
 import { BookOpen, BarChart3, Bus, Search, MessageSquare, TrendingUp, Calendar, Award, Loader2 } from 'lucide-react';
+import KeepAlive from '@/components/KeepAlive';
 
 type ParentTab = 'progress' | 'compare' | 'bus' | 'feedback';
 
@@ -40,7 +41,7 @@ const ParentDashboard = () => {
     publishedOnly: true,
   });
 
-  if (loading.students || loading.marks) {
+  if ((loading.students || loading.marks) && students.length === 0) {
     return (
       <AppLayout title="Parent Dashboard">
         <div className="flex flex-col items-center justify-center min-h-[400px] gap-3">
@@ -80,7 +81,14 @@ const ParentDashboard = () => {
   ];
 
   return (
-    <AppLayout title={`${student.name}'s Progress`}>
+    <AppLayout
+      title={`${student.name}'s Progress`}
+      nav={{
+        items: tabs,
+        activeId: activeTab,
+        onSelect: (id) => setActiveTab(id as ParentTab),
+      }}
+    >
       {/* Parent profile header */}
       <div className="flex items-center gap-4 mb-6 p-4 bg-card border border-border rounded-2xl">
         <ProfilePhotoWidget
@@ -97,23 +105,13 @@ const ParentDashboard = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {tabs.map(tab => (
-          <button key={tab.id} onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === tab.id ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/30'
-              }`}>
-            {tab.icon}{tab.label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'progress' && (
+      <KeepAlive active={activeTab === 'progress'}>
         <ProfileErrorBoundary onReset={() => { }}>
           <StudentProfile student={student} onBack={() => { }} simplified onFeedbackClick={() => setActiveTab('feedback')} />
         </ProfileErrorBoundary>
-      )}
-      {activeTab === 'compare' && <PeerComparison student={student} viewerRole="parent" />}
-      {activeTab === 'bus' && <BusManagement studentId={student.id} />}
+      </KeepAlive>
+      <KeepAlive active={activeTab === 'compare'}><PeerComparison student={student} viewerRole="parent" /></KeepAlive>
+      <KeepAlive active={activeTab === 'bus'}><BusManagement studentId={student.id} /></KeepAlive>
 
       {activeTab === 'feedback' && (
         <div className="space-y-6">

@@ -26,6 +26,7 @@ import { AttendanceRecord, Mark, Student } from '@/lib/types';
 import { Users, TrendingUp, AlertTriangle, BarChart3, LayoutDashboard, ClipboardList, Bus, Search, Upload, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { filterTabs, canViewTab } from '@/lib/rbac-utils';
+import KeepAlive from '@/components/KeepAlive';
 import { useSchoolSettings } from '@/contexts/SchoolSettingsContext';
 
 
@@ -401,7 +402,14 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <AppLayout title={dashboardTitle}>
+    <AppLayout
+      title={dashboardTitle}
+      nav={{
+        items: teacherTabs,
+        activeId: activeTab,
+        onSelect: (id) => setActiveTab(id as TeacherTab),
+      }}
+    >
       {/* Teacher profile header */}
       <div className="flex items-center gap-4 mb-6 p-4 bg-card border border-border rounded-2xl">
         <ProfilePhotoWidget
@@ -418,20 +426,7 @@ const TeacherDashboard = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        {teacherTabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${activeTab === tab.id ? 'bg-primary text-primary-foreground shadow-md' : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:border-primary/30'}`}
-          >
-            {tab.icon}
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'overview' && (
+      <KeepAlive active={activeTab === 'overview'}>
         <TeacherOverviewTab
           teacherClass={teacherClass}
           classStudents={classStudents}
@@ -445,13 +440,13 @@ const TeacherDashboard = () => {
           loadingStudents={loading.students}
           loadingMarks={loading.marks}
         />
-      )}
-      {activeTab === 'console' && <ClassConsole />}
+      </KeepAlive>
+      <KeepAlive active={activeTab === 'console'}><ClassConsole /></KeepAlive>
       {activeTab === 'forms' && <DataEntryForms />}
-      {activeTab === 'search' && <StudentSearch />}
-      {activeTab === 'compare' && <TeacherCompareTab classStudents={classStudents} />}
-      {activeTab === 'bus' && <BusManagement />}
-      {activeTab === 'upload' && <TeacherUploadTab />}
+      <KeepAlive active={activeTab === 'search'}><StudentSearch /></KeepAlive>
+      <KeepAlive active={activeTab === 'compare'}><TeacherCompareTab classStudents={classStudents} /></KeepAlive>
+      <KeepAlive active={activeTab === 'bus'}><BusManagement /></KeepAlive>
+      <KeepAlive active={activeTab === 'upload'}><TeacherUploadTab /></KeepAlive>
     </AppLayout>
   );
 };

@@ -1292,11 +1292,11 @@ export const useStore = create<AppState>((set, get) => ({
         try {
             set((state: AppState) => ({ loading: { ...state.loading, users: true } }));
 
-            // Single round-trip (was a paginated while(hasMore) loop) with an
-            // explicit column list instead of select('*').
+            // Single round-trip (was a paginated while(hasMore) loop). Uses
+            // select('*') to stay schema-safe (see fetchStudents note).
             const { data, error } = await supabase
                 .from('user_profiles')
-                .select('id, email, name, role, school_id, status, class_id, section, roll_number, linked_student_id, linked_children_ids, photo_url, email_sent, created_at, updated_at')
+                .select('*')
                 .eq('school_id', schoolId)
                 .range(0, 4999);
 
@@ -1529,13 +1529,14 @@ export const useStore = create<AppState>((set, get) => ({
       try {
         set((state: AppState) => ({ loading: { ...state.loading, students: true } }));
 
-        // Single round-trip (was a paginated while(hasMore) loop). Explicit column
-        // list EXCLUDES the heavy `results` JSONB column — it is pulled over the
-        // wire by select('*') but never read by the mapper below, so dropping it
-        // is the single biggest payload win with zero behavior change.
+        // Single round-trip (was a paginated while(hasMore) loop). Uses select('*')
+        // so the query always matches the live table schema. An explicit column
+        // list was tried here to drop the heavy `results` JSONB, but naming any
+        // column the table doesn't have makes PostgREST 400 the whole query and
+        // return zero students — so we keep '*' until the exact schema is verified.
         const { data, error } = await supabase
           .from('students')
-          .select('id, roll_number, name, class, class_id, section, paid_amount, total_fees, photo_url, profile_image, transport_enabled, uses_bus, bus_route_id, bus_stop, avatar_color, parent_name, parent_contact, mother_name, address, blood_group, date_of_birth, enrollment_date, school_id, created_at, updated_at')
+          .select('*')
           .eq('school_id', schoolId)
           .range(0, 4999);
 

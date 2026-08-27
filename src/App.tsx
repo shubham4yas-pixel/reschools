@@ -51,7 +51,7 @@ const AuthGate = () => {
 };
 
 const AppBootstrap = () => {
-  const { schoolId, role, authLoading } = useAuth();
+  const { schoolId, role, authLoading, studentId, parentStudentId, classId } = useAuth();
   const init       = useStore(state => state.init);
   const resetStore = useStore(state => state.resetStore);
 
@@ -67,8 +67,12 @@ const AppBootstrap = () => {
     }
 
     // User logged in — initialise data for their school
-    void init(schoolId);
-  }, [authLoading, role, schoolId, init, resetStore]);
+    const context = {
+      studentId: role === 'parent' ? parentStudentId : studentId,
+      classId: classId || undefined,
+    };
+    void init(schoolId, role, context);
+  }, [authLoading, role, schoolId, init, resetStore, studentId, parentStudentId, classId]);
 
   return null;
 };

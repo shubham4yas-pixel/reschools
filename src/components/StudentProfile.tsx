@@ -152,9 +152,12 @@ const StudentProfile = ({ student: initialStudent, onBack, simplified = false, o
       setUploadProgress(100);
       setPhotoPreviewURL(downloadURL);
       setUploadError(null);
-      void fetchStudents(schoolId).catch((refreshError) => {
-        console.error('Failed to refresh students after photo upload:', refreshError);
-      });
+      const { setStudents, students: currentStudents } = useStore.getState();
+      setStudents(
+        currentStudents.map(s => 
+          s.id === student.id ? { ...s, photoURL: downloadURL } : s
+        )
+      );
       toast.success('Profile picture updated');
     } catch (error) {
       console.error('UPLOAD FAILED:', error);

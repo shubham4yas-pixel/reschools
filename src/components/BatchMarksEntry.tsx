@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Student } from '@/lib/types';
 import { getStudentsByClassSection, getClassName, getUniqueSections } from '@/lib/data-utils';
 import { ClipboardList, Loader2, RotateCcw, Send, Upload, Save, Check } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import { toast } from 'sonner';
 
 interface BatchMarksEntryProps {
@@ -77,11 +76,13 @@ const BatchMarksEntry = ({ onStudentClick, hideFilters = false }: BatchMarksEntr
         localStorage.setItem(PERSIST_KEY, JSON.stringify(context));
     }, [context]);
 
-    const handleDownloadTemplate = () => {
+    const handleDownloadTemplate = async () => {
         if (!filterClass || !context.subjectId || !context.examId) {
             toast.error("Please select a class, subject and exam first.");
             return;
         }
+
+        const XLSX = await import('xlsx');
 
         const subName = allSubjects.find(s => s.id === context.subjectId)?.name || context.subjectId;
         const headers = ["Roll No", "Student ID", "Name", "Marks", "Out Of"];
@@ -107,6 +108,7 @@ const BatchMarksEntry = ({ onStudentClick, hideFilters = false }: BatchMarksEntr
         const reader = new FileReader();
         reader.onload = async (evt) => {
             try {
+                const XLSX = await import('xlsx');
                 const bstr = evt.target?.result;
                 const wb = XLSX.read(bstr, { type: 'binary' });
                 const ws = wb.Sheets[wb.SheetNames[0]];

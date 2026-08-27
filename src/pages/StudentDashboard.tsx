@@ -25,7 +25,7 @@ type StudentTab = 'overview' | 'compare' | 'bus';
 
 const StudentDashboard = () => {
   const { schoolId, studentId } = useAuth();
-  const { students, marks, attendance, fees, busRoutes, loading, subjects: allSubjects } = useStore();
+  const { students, marks, attendance, loading, subjects: allSubjects } = useStore();
   const [activeTab, setActiveTab] = useState<StudentTab>('overview');
   const [feedbackSearch, setFeedbackSearch] = useState('');
   const [subjectSearch, setSubjectSearch] = useState('');
@@ -72,7 +72,7 @@ const StudentDashboard = () => {
 
   const subjectPerformance = subjects.map(sub => ({
     subject: sub,
-    average: getSubjectAverage(student.id, sub, marks),
+    average: getSubjectAverage(student.id, sub, publishedMarks),
   })).filter(s =>
     (s.subject || "").toLowerCase().includes(subjectSearch.toLowerCase())
   );

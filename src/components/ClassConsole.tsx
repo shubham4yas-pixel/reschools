@@ -19,7 +19,6 @@ import AttendanceEntryPanel from '@/components/AttendanceEntryPanel';
 import StudentAvatar from '@/components/StudentAvatar';
 import { toast } from 'sonner';
 import { Users, Save, Loader2, ClipboardList, Calendar, IndianRupee, RotateCcw, Check, CheckSquare, XSquare, Send, Upload } from 'lucide-react';
-import * as XLSX from 'xlsx';
 import BatchMarksEntry from '@/components/BatchMarksEntry';
 
 type ConsoleMode = 'marks' | 'attendance' | 'fees';
